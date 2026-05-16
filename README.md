@@ -1,52 +1,52 @@
 # rappter-distro
 
-> The full-bodied **Rappter distro** for the RAPP grail kernel.
+> The **Rappter distro** — organism layer on top of the RAPP grail kernel.
 
-The RAPP kernel (`brainstem.py`, in [`kody-w/rapp-installer`](https://github.com/kody-w/rapp-installer), mirrored at [`kody-w/RAPP`](https://github.com/kody-w/RAPP)) is the load-bearing foundation — a Linux-kernel-style BIOS for digital organisms. It is small and stable.
+The RAPP kernel ([`kody-w/rapp-installer`](https://github.com/kody-w/rapp-installer), mirrored at [`kody-w/RAPP`](https://github.com/kody-w/RAPP)) ships the full three-tier Stack: Brainstem (Tier 1), Swarm/Azure Functions (Tier 2), Copilot Studio (Tier 3). That stack is the kernel's identity — nothing in this distro displaces it.
 
-**This repo is a distro on top of that kernel.** It hatches a full Rappter organism onto a vanilla brainstem install: agents for memory + swarm management + agent generation, organs for estate/lineage/neighborhood/lifecycle, senses for voice + twin, a rich UI, the lineage/bonding/egg cartridge library, Tier 2 + Tier 3 deployments, and the Rappter narrative docs.
+What this distro adds is the **organism layer** that grew on top of the kernel after the three tiers stabilized: organs (HTTP route extensions under `/api/<name>/*`), senses (response channels like `|||VOICE|||` and `|||TWIN|||`), lineage / bonding / egg-cartridge lib, the rich web UI, the Rappter narrative docs (ECOSYSTEM, HERO_USECASE, ANTIPATTERNS, NEIGHBORHOOD_PROTOCOL, OSI, vault prose), the post-kernel agents (swarm_factory, learn_new, upgrade), and the Rappter-specific ops tooling.
 
-Like Ubuntu on top of Linux — the kernel doesn't care which distro is on top, and you don't need a distro at all if you just want a bare kernel.
+Like a Linux desktop environment on top of a kernel that already does plenty on its own — opt-in.
 
 ## Install
 
-After installing the grail kernel:
+After installing the kernel (which already gives you Brainstem + Swarm + Copilot Studio):
 
 ```bash
-# 1. Install grail kernel
+# 1. Kernel (includes T1/T2/T3 narrative + deploy artifacts)
 curl -fsSL https://kody-w.github.io/RAPP/installer/install.sh | bash
 
-# 2. Hatch the Rappter distro on top
+# 2. Hatch the Rappter organism layer
 curl -fsSL https://raw.githubusercontent.com/kody-w/rappter-distro/main/install.sh | bash
 ```
 
-Or in one shot:
-
-```bash
-curl -fsSL https://kody-w.github.io/RAPP/installer/install.sh | bash -s -- --rappter
-```
-
-## What this distro adds
+## What this distro adds (on top of the kernel)
 
 | Layer | Adds |
 |---|---|
-| Agents | `swarm_factory`, `learn_new`, `upgrade` (`agents/@rappter/`) |
+| Agents | `swarm_factory`, `learn_new`, `upgrade` (`agents/@rappter/`) — beyond grail's bundled set |
 | Lib | `bond`, `egg`, `lineage`, `rappid`, `frames`, `peer_registry`, `twin`, `llm`, `workspace`, `index_card`, `boot` launcher (`lib/`) |
 | Organs | estate, lifecycle, neighborhood, neighborhood-membership, swarm-estate (`organs/`) — `/api/<organ>/*` routes |
 | Senses | voice, twin (`senses/`) — `|||VOICE|||` / `|||TWIN|||` channels |
-| UI | rich `index.html`, web assets, PWA manifest, `tls_proxy.py` HTTPS wrapper (`ui/`) |
-| Tier 2 | Azure Functions swarm (`tier2/`) |
-| Tier 3 | Cloudflare Worker + Copilot Studio bundle (`tier3/`) |
-| Tools | ecosystem audit, graph, rebuild estate, etc. (`tools/`) |
+| UI | rich `index.html` (223 KB), web assets, PWA manifest, `tls_proxy.py` HTTPS wrapper (`ui/`) |
+| Tools | ecosystem_audit, ecosystem_graph, rebuild_estate, sign_release, etc. (`tools/`) |
 | Examples | `rapp-commons` neighborhood (`examples/`) |
-| Docs | ECOSYSTEM, HERO_USECASE, ANTIPATTERNS, NEIGHBORHOOD_PROTOCOL, OSI, vault prose (`docs/`) |
+| Docs | ECOSYSTEM, HERO_USECASE, ANTIPATTERNS, NEIGHBORHOOD_PROTOCOL, OSI, ECOSYSTEM_MAP, MASTER_PLAN, COMMERCIAL, SURVIVAL, TRADEMARK, DEFINITION_OF_DONE, LEXICON, TEMPLATE + Obsidian vault (`docs/`) |
+
+## What this distro does NOT add (because the kernel already has it)
+
+- Tier 1 Brainstem (`rapp_brainstem/`) — grail kernel
+- Tier 2 Swarm — grail's `azuredeploy.json` + `deploy.sh` + RAPP's `rapp_swarm/` Python impl
+- Tier 3 Copilot Studio — grail's `MSFTAIBASMultiAgentCopilot_*.zip` Power Platform solution
+- Cloudflare Worker auth bridge — `worker/` in RAPP
+- `community_rapp/` — grail's community-side install surface
 
 ## Kernel compatibility
 
-Tracks grail at the version pinned in `distro.json`. The drift-check one-liner from the [Mirror Spec](https://github.com/kody-w/RAPP/blob/main/pages/vault/Architecture/Mirror%20Spec.md) still applies — the distro never modifies the kernel's three sacred files (`brainstem.py`, `VERSION`, `basic_agent.py`).
+Tracks grail at the version pinned in `distro.json`. The Mirror Spec drift-check one-liner against grail's three sacred files still applies — the distro never modifies them.
 
-See [`MIGRATION_NOTES.md`](./MIGRATION_NOTES.md) for what regressed vs. the prior monorepo, and how each Rappter-specific feature now layers onto the kernel.
+See [`MIGRATION_NOTES.md`](./MIGRATION_NOTES.md) for the full extraction history.
 
 ## Other distros
 
-This is one distro. The point of the kernel/distro split is that other distros can exist for different use cases — minimal/research/enterprise/etc. — without forking the kernel.
+The kernel's three-tier story doesn't need this distro to function. Other distros can layer different organism shapes on the same kernel without forking it. The contract for a valid distro: never modify the three sacred kernel files.

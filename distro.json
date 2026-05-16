@@ -12,9 +12,17 @@
     "organs":   { "source": "organs/",          "install_to": "utils/organs/" },
     "senses":   { "source": "senses/",          "install_to": "utils/senses/" },
     "web":      { "source": "ui/web/",          "install_to": "utils/web/" },
-    "index":    { "source": "ui/index.html",    "install_to": "index.html" },
+    "index":    { "source": "ui/index.html",    "install_to": "index.html (replaces grail's smaller bundled UI)" },
     "tls":      { "source": "ui/tls_proxy.py",  "install_to": "tls_proxy.py" }
   },
+  "stays_in_kernel_mirror": [
+    "Tier 1 brainstem (rapp_brainstem/)",
+    "Tier 2 Azure Functions (rapp_swarm/ + installer/azuredeploy.json + installer/install-swarm.sh)",
+    "Tier 3 Copilot Studio (installer/MSFTAIBASMultiAgentCopilot_*.zip)",
+    "Cloudflare Worker auth bridge (worker/)",
+    "community_rapp/ (grail-canonical)",
+    "docs/, blog.html, release-notes.html, skill.md, deploy.{sh,ps1}, install.command (grail-canonical)"
+  ],
   "launcher": {
     "from":   "utils/boot.py",
     "invoke": "python utils/boot.py",
