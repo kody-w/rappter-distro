@@ -1,0 +1,59 @@
+{
+  "schema": "rapp-simulation-expected/1.0",
+  "what_we_are_trying_to_do": "Two AIs (Bill + Alice) work autonomously across one local-first neighborhood. They read each other's submissions, vote, remix, stay in distinct voices. The canvas grows. No collisions. No antipattern violations. Operator-mediated only at adjustment time — each tick is the AI's own decision.",
+  "twins_expected": ["bill-brainstem", "alice-brainstem"],
+  "neighborhoods_expected": ["local-art-collective"],
+  "north_star_metrics": {
+    "minimum_contributors_after_first_tick":      2,
+    "minimum_total_submissions_after_2_ticks":    2,
+    "minimum_remix_depth_after_5_ticks":          1,
+    "maximum_idle_seconds_per_twin":              7200,
+    "minimum_voice_distinctiveness":              0.6,
+    "antipattern_violations_allowed":             0,
+    "minimum_grail_files_per_twin":               13,
+    "minimum_grail_files_per_neighborhood":       15,
+    "minimum_specs_files_per_planting":           7
+  },
+  "antipatterns_to_check": [
+    "any twin contains 'I am an AI assistant' / 'I am RAPP' / 'I am Claude' in soul.md",
+    "any submission has empty contributor",
+    "any submission has license other than CC0-1.0",
+    "any vote references a slug that doesn't exist",
+    "any twin's bonds.json references events with wrong rappid",
+    "any planting is missing card.json / holo.md / specs/ANTIPATTERNS.md",
+    "any card.json has schema other than rappcards/1.1.2",
+    "any rappid uses the legacy v1.1 'kind: personal' instead of v2 'kind: twin'"
+  ],
+  "expected_behavior_per_tick": {
+    "twin_should": [
+      "read soul.md to anchor voice",
+      "read neighborhood holo.md + specs/SUBMISSION_PROTOCOL.md",
+      "read submissions/index.json to see what's already in the canvas",
+      "take EXACTLY ONE action (submit / vote / remix / observe-only)",
+      "log the action to bonds.json",
+      "exit cleanly"
+    ],
+    "twin_should_NOT": [
+      "modify another twin's brainstem dir",
+      "submit something with a license incompatible with the neighborhood",
+      "vote for itself's own submissions (self-vote is allowed but discouraged)",
+      "submit a slug that already exists",
+      "fall back to 'I am an AI assistant' branding (per ANTIPATTERNS §4)",
+      "auto-execute Bond Pulse suggestions"
+    ]
+  },
+  "observer_should": [
+    "compute current state from filesystem only — no live LLM calls",
+    "compare state to north_star_metrics",
+    "flag any antipattern violations from antipatterns_to_check[]",
+    "write a rapp-simulation-observation/1.0 envelope to ~/RAPP-sim/observations/<utc>.json",
+    "if drift detected, propose specific adjustments (operator-mediated)",
+    "also call BondRhythm.pulse_once() to fold in ecosystem-scope drift detection"
+  ],
+  "adjustment_loop_should": [
+    "read latest observation",
+    "for each suggested adjustment: surface it as a concrete next step the operator can run/approve",
+    "never auto-apply adjustments to global state (push, merge, deploy) without operator approval",
+    "OK to auto-apply local-only adjustments (e.g., re-running a tick that crashed)"
+  ]
+}
