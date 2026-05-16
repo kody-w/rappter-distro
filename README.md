@@ -2,6 +2,10 @@
 
 > The **Rappter distro** — organism layer on top of the RAPP grail kernel.
 
+> **Why hatch the distro?** The kernel already runs agents. The distro lets agents *have an identity, find each other, and persist their lineage* — twins, neighborhoods, bonds, eggs, the rich UI. Useful when one brainstem isn't enough and your organism needs to live among others. If you just want to run agents locally, the bare kernel is plenty.
+>
+> *Looking for the canonical reading order of the whole platform?* Start at the [**Kernel hub**](https://kody-w.github.io/RAPP/pages/kernel.html) in the mirror repo — trilogy, law, specs, vault Reading Paths in one rendered page.
+
 The RAPP kernel ([`kody-w/rapp-installer`](https://github.com/kody-w/rapp-installer), mirrored at [`kody-w/RAPP`](https://github.com/kody-w/RAPP)) ships the full three-tier Stack: Brainstem (Tier 1), Swarm/Azure Functions (Tier 2), Copilot Studio (Tier 3). That stack is the kernel's identity — nothing in this distro displaces it.
 
 What this distro adds is the **organism layer** that grew on top of the kernel after the three tiers stabilized: organs (HTTP route extensions under `/api/<name>/*`), senses (response channels like `|||VOICE|||` and `|||TWIN|||`), lineage / bonding / egg-cartridge lib, the rich web UI, the Rappter narrative docs (ECOSYSTEM, HERO_USECASE, ANTIPATTERNS, NEIGHBORHOOD_PROTOCOL, OSI, vault prose), the post-kernel agents (swarm_factory, learn_new, upgrade), and the Rappter-specific ops tooling.
