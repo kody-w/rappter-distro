@@ -1,0 +1,14 @@
+{
+  "name": "rapp-osi-browser",
+  "version": "1.0.0",
+  "description": "Playwright-driven browser conformance tests for the RAPP OSI L4a (WebRTC tether) layer. Spawns two real Chromium contexts, opens a PeerJS-mediated DataChannel between them, exchanges messages both ways. Closes the L4a gap that shell-only tests can't cover.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node L4a-tether.spec.mjs",
+    "install-chromium": "playwright install chromium"
+  },
+  "dependencies": {
+    "playwright": "^1.49.0"
+  }
+}

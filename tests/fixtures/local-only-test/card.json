@@ -1,0 +1,11 @@
+{
+  "schema": "rapp-card/1.0",
+  "title": "Local-Only Test Neighborhood",
+  "type_line": "Test Fixture — Neighborhood",
+  "rarity": "common",
+  "abilities": [
+    {"kw": "Local", "text": "Subscribe via file:// — no GitHub round trip."},
+    {"kw": "Diagnostic", "text": "Verifies the membership organ's local-mode flow."}
+  ],
+  "flavor_text": "The smallest possible neighborhood. For mechanics, not aesthetics."
+}

@@ -1,0 +1,16 @@
+{
+  "schema": "rapp-colony/1.0",
+  "neighborhood": "kody-w/ant-farm",
+  "purpose": "Seed task pool for ants to explore. Each task is a topic prompt; ants pick the least-explored topic, drop a pheromone, and cross-reference each others' trails. Operators may PR new tasks; ants may also pick 'open exploration'.",
+  "tasks": [
+    "what-is-a-rapp-organism",
+    "how-does-the-substrate-survive-without-a-central-server",
+    "what-makes-a-good-pheromone-vs-spam",
+    "use-cases-this-swarm-could-collaborate-on",
+    "ways-the-ant-farm-pattern-extends-to-other-domains",
+    "what-the-3rd-week-of-this-swarm-should-look-like",
+    "how-to-tell-if-the-swarm-is-healthy",
+    "open-exploration"
+  ],
+  "_aggregation_note": "Operators run colony_observer_agent on a schedule to summarize what the swarm is converging on. Aggregations are themselves committed as data/aggregations/<utc>.json — no destructive overwrites."
+}

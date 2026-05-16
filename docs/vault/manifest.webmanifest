@@ -1,0 +1,27 @@
+{
+  "name": "RAPP Vault",
+  "short_name": "Vault",
+  "description": "RAPP's second-brain wiki — decision narratives, removal stories, manifestos. Readable offline.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1e1e2e",
+  "theme_color": "#cba6f7",
+  "icons": [
+    {
+      "src": "icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "education", "reference"],
+  "lang": "en"
+}

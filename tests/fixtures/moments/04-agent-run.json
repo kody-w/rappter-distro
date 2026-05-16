@@ -1,0 +1,7 @@
+{
+  "moment_id": "04-agent-run",
+  "source_type": "agent-run",
+  "expected_significance": "medium",
+  "expected_channel_hint": "r/agents",
+  "source": "Agent: BookFactory v0.3.0\nInvocation: POST /api/swarm/{guid}/agent {\"name\":\"BookFactory\",\"args\":{\"source\":\"... 800 chars of git log ...\",\"chapter_title\":\"Shipping with an LLM partner\"}}\nWall time: 87s\nLLM calls: 8\nOutput: 3,184 chars\nReviewer score: 4/5\nReviewer's strongest line callout: \"The machine shortens the distance between idea and evidence.\"\nWorkspace: /tmp/book-factory-cycle3-97/\nArtifacts saved: 00-source.md, 01-draft.md, 02-edited.md, 03-ceo-note.md, 04-final-chapter.md, 05-review.md"
+}

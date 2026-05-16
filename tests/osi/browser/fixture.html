@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>RAPP OSI L4a — Tether Fixture</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font: 14px/1.4 -apple-system, system-ui, sans-serif; padding: 16px; max-width: 720px; }
+    pre  { background: #f4f4f4; padding: 8px; border-radius: 4px; min-height: 1.4em; }
+    .row { display: flex; gap: 8px; margin: 8px 0; }
+    input { flex: 1; font: inherit; padding: 6px 8px; }
+    button { font: inherit; padding: 6px 12px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>L4a — WebRTC tether fixture</h1>
+  <p>
+    Mirrors the PeerJS pair pattern that <code>installer/plant.sh</code> writes
+    into every planted seed (line 974: <code>peerjs@1.5.4</code> from unpkg;
+    <code>ensurePeer()</code> + <code>peer.connect(id)</code>).
+  </p>
+
+  <div>
+    <strong>My peer ID:</strong>
+    <pre id="my-peer-id">connecting…</pre>
+  </div>
+
+  <div class="row">
+    <input id="other-peer-id" placeholder="enter the other device's peer id" />
+    <button id="connect">Connect</button>
+  </div>
+
+  <div>
+    <strong>Status:</strong>
+    <pre id="status">idle</pre>
+  </div>
+
+  <div>
+    <strong>Messages received:</strong>
+    <pre id="messages"></pre>
+  </div>
+
+  <div class="row">
+    <input id="message-input" placeholder="message to send" value="hello over the tether" />
+    <button id="send">Send</button>
+  </div>
+
+  <!-- Same CDN URL plant.sh writes into the front door. -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script>
+    "use strict";
+    const $ = (id) => document.getElementById(id);
+    const setStatus = (s) => { $("status").textContent = s; };
+    const appendMsg = (m) => {
+      const cur = $("messages").textContent;
+      $("messages").textContent = cur ? cur + "\n" + m : m;
+    };
+
+    let peer = null;
+    let conn = null;
+    const events = [];
+    const logEvent = (where, what, extra) => {
+      events.push({ t: Date.now(), where, what, extra: extra ? String(extra).slice(0, 300) : "" });
+    };
+
+    function attachConnHandlers(c) {
+      logEvent("conn", "attach", c.peer);
+      c.on("open", () => { logEvent("conn", "open", c.peer); setStatus("connected"); });
+      c.on("data", (data) => {
+        logEvent("conn", "data", typeof data);
+        appendMsg(typeof data === "string" ? data : JSON.stringify(data));
+      });
+      c.on("close", () => { logEvent("conn", "close", c.peer); setStatus("closed"); });
+      c.on("error", (e) => { logEvent("conn", "error", e && e.message || e); setStatus("error: " + (e && e.message || e)); });
+    }
+
+    function ensurePeer() {
+      if (peer) return peer;
+      peer = new Peer({ debug: 2 });
+      peer.on("open", (id) => {
+        logEvent("peer", "open", id);
+        $("my-peer-id").textContent = id;
+        setStatus("registered");
+      });
+      peer.on("connection", (c) => {
+        logEvent("peer", "incoming-connection", c.peer);
+        conn = c;
+        attachConnHandlers(c);
+      });
+      peer.on("error", (e) => {
+        logEvent("peer", "error", (e && (e.type + ": " + e.message)) || String(e));
+        setStatus("peer-error: " + (e && e.type || e));
+      });
+      peer.on("disconnected", () => logEvent("peer", "disconnected"));
+      peer.on("close", () => logEvent("peer", "close"));
+      return peer;
+    }
+
+    function connectToPeer(id) {
+      ensurePeer();
+      conn = peer.connect(id, { reliable: true });
+      attachConnHandlers(conn);
+    }
+
+    function sendMessage(text) {
+      if (!conn || !conn.open) return false;
+      conn.send({ schema: "rapp-tether/1.0", text, from: peer && peer.id });
+      return true;
+    }
+
+    $("connect").addEventListener("click", () => {
+      const id = $("other-peer-id").value.trim();
+      if (id) connectToPeer(id);
+    });
+    $("send").addEventListener("click", () => sendMessage($("message-input").value));
+
+    // Boot
+    ensurePeer();
+
+    // Hooks for Playwright (deterministic, no DOM-scraping required)
+    window.__rappTest = {
+      getMyId:    () => $("my-peer-id").textContent,
+      getStatus:  () => $("status").textContent,
+      getMessages: () => $("messages").textContent,
+      getEvents:  () => events.slice(),
+      getPeerState: () => ({
+        id: peer && peer.id,
+        open: peer && peer.open,
+        destroyed: peer && peer.destroyed,
+        disconnected: peer && peer.disconnected,
+        connections: peer && Object.keys(peer.connections || {}),
+      }),
+      // Don't await PeerJS's "open" event in a Promise — it can take >15s with public broker
+      // under load. Instead, fire the connect and let the spec poll status.
+      startConnect: (id) => {
+        ensurePeer();
+        const c = peer.connect(id, { reliable: true, serialization: "json" });
+        attachConnHandlers(c);
+        conn = c;
+        return { ok: true, peer: id };
+      },
+      // Legacy promise variant (kept for compat)
+      connectTo: (id) => new Promise((resolve, reject) => {
+        ensurePeer();
+        const c = peer.connect(id, { reliable: true, serialization: "json" });
+        attachConnHandlers(c);
+        conn = c;
+        c.on("open", () => resolve("open"));
+        c.on("error", (e) => reject(new Error(e && e.message || String(e))));
+        setTimeout(() => reject(new Error("connectTo timeout")), 25000);
+      }),
+      send: (text) => sendMessage(text),
+    };
+  </script>
+</body>
+</html>

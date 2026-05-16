@@ -1,0 +1,35 @@
+{
+  "schema": "rapp-application/1.0",
+  "name": "ant-farm-explorer",
+  "display_name": "🐜 Ant Farm Explorer",
+  "version": "1.0.0",
+  "summary": "One-click pheromone-and-observe loop for the RAPP Ant Farm. Wraps the Ant + ColonyObserver agents into a single rapplication tile per the RAPP_Store contract.",
+  "kind": "neighborhood-rapp",
+  "for_neighborhood": "kody-w/ant-farm",
+  "requires_agents": [
+    {"name": "Ant", "agent_file": "agents/ant_agent.py", "rar_url": "https://raw.githubusercontent.com/kody-w/ant-farm/main/agents/ant_agent.py", "sha256": "992791b1e2faa9f00c1c16c6940346ef42c4e916b52080789e95bbb58aa0eb59"},
+    {"name": "ColonyObserver", "agent_file": "agents/colony_observer_agent.py", "rar_url": "https://raw.githubusercontent.com/kody-w/ant-farm/main/agents/colony_observer_agent.py", "sha256": "cdd0937ec88ae9a8065ab618eb9dcf8504255d73ad633ad2c7be8d7ea7275495"}
+  ],
+  "ui": {
+    "tile_label": "🐜 Drop a pheromone",
+    "tile_route": "/rapps/ant-farm-explorer",
+    "actions": [
+      {"label": "Observe colony", "agent_call": {"name": "ColonyObserver", "args": {}}},
+      {"label": "Drop pheromone (dry-run)", "agent_call": {"name": "Ant", "args": {"dry_run": true}}},
+      {"label": "Drop pheromone (post)", "agent_call": {"name": "Ant", "args": {"dry_run": false}}, "requires": "github_token"}
+    ]
+  },
+  "per_rapp_state": {
+    "storage_key": "rapp_ant_farm_explorer_v1",
+    "_purpose": "Local cache of the operator's recent pheromones (offline-dimension support — survives kernel restarts; reassimilates via Dream Catcher on reconnect)."
+  },
+  "store_listing": {
+    "category": "neighborhood",
+    "tags": ["swarm", "demo", "scale", "pheromone", "ant-farm"],
+    "icon": "🐜",
+    "license": "MIT",
+    "homepage": "https://kody-w.github.io/ant-farm/",
+    "source": "https://github.com/kody-w/ant-farm"
+  },
+  "_note": "Same rapp-application/1.0 shape that lives in kody-w/RAPP_Store, but bundled in the neighborhood's own rar/. Per the universal RAR pattern: every planted seed CAN host its own rapplications that participants install — making the seed self-sufficient as a downloadable, brainstem-runnable package."
+}

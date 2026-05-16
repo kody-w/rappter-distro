@@ -1,0 +1,30 @@
+{
+  "schema": "rapp-kernel/1.1",
+  "description": "Public source of truth for the RAPP digital-organism kernel. Every released version is preserved here at a stable URL forever. New versions are added; old ones are never modified or removed.",
+  "files": [
+    "brainstem.py",
+    "basic_agent.py",
+    "context_memory_agent.py",
+    "manage_memory_agent.py"
+  ],
+  "latest": "0.12.2",
+  "signing": {
+    "preferred_method": "ed25519",
+    "method": null,
+    "key_id": null,
+    "verification_uri": null,
+    "tool": "tools/sign_release.py",
+    "_note": "Per CONSTITUTION Art. XXXIV.7 the signing infrastructure is opt-in per variant. ed25519 is the project's preferred method (deterministic; 32-byte pubkey; pure verify with no chain-of-trust dependency). Generate a keypair with `python3 tools/sign_release.py keygen --out ~/.rapp/release-keys`; then sign with `... sign --in rapp_kernel/manifest.json --out rapp_kernel/manifest.sig --key ~/.rapp/release-keys/private.pem`. Populate `key_id` with the 16-char fingerprint and `verification_uri` with the published location of public.pem. Other acceptable methods (signed git tags, sigstore, minisign) remain valid per Art. XXXIV.7."
+  },
+  "versions": [
+    {
+      "version": "0.12.2",
+      "path": "v/0.12.2",
+      "released_at": "2026-04-28",
+      "status": "current",
+      "notes": "Canonical kernel after the digital-organism re-establishment. UTF-8 safe across all OS locales. Fixture 02 included.",
+      "attestation": null
+    }
+  ]
+}
+

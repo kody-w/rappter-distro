@@ -1,0 +1,37 @@
+{
+  "schema": "rapp-binder/1.0",
+  "name": "@rappter/full-organism",
+  "version": "0.1.0",
+  "display_name": "Rappter Full Organism",
+  "description": "Meta-binder: installs everything in rappter-distro onto a vanilla grail brainstem.",
+  "kind": "distro-binder",
+  "installs": {
+    "agents": [
+      "@rappter/swarm_factory",
+      "@rappter/learn_new",
+      "@rappter/upgrade"
+    ],
+    "organs": [
+      "estate",
+      "lifecycle",
+      "neighborhood",
+      "neighborhood_membership",
+      "swarm_estate"
+    ],
+    "senses": [
+      "voice",
+      "twin"
+    ],
+    "lib": [
+      "bond", "boot", "egg", "frames", "index_card",
+      "lineage", "lineage_check", "llm", "peer_registry",
+      "rappid", "twin", "workspace"
+    ],
+    "ui": [
+      "index.html",
+      "web/",
+      "tls_proxy.py"
+    ]
+  },
+  "install_via": "install.sh"
+}

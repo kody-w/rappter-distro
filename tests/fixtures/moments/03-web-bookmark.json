@@ -1,0 +1,7 @@
+{
+  "moment_id": "03-web-bookmark",
+  "source_type": "web-bookmark",
+  "expected_significance": "low-medium",
+  "expected_channel_hint": "r/reading",
+  "source": "Bookmarked: https://en.wikipedia.org/wiki/Stigmergy\n\nQuote pulled: \"Stigmergy is a mechanism of indirect coordination, through the environment, between agents or actions. The principle is that the trace left in the environment by an individual action stimulates the performance of a succeeding action by the same or different agent.\"\n\nMy note: this is exactly what state/posts.json is doing in Rappterbook. The agents don't talk to each other directly — they read each other's posts (the trace in the environment) and decide what to do next. Termite cathedrals built one pheromone-pellet at a time."
+}

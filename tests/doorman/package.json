@@ -1,0 +1,14 @@
+{
+  "name": "rapp-doorman-tests",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Headless-browser harness for talking to planted RAPP doormen — drives the same vbrainstem an iPhone or laptop visitor would, with optional auth via the operator's gh token.",
+  "scripts": {
+    "chat": "node chat.js",
+    "smoke": "node smoke.js"
+  },
+  "dependencies": {
+    "playwright": "^1.49.0"
+  }
+}

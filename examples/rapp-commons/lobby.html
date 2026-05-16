@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RAPP Lobby Bridge</title>
+
+<!--
+  Lobby Bridge Popup (rapp-lobby-bridge/1.0)
+  ───────────────────────────────────────────
+  A first-party HTTPS surface on kody-w.github.io that runs the PeerJS
+  lobby on behalf of a tether window stuck on http://localhost or in a
+  browser whose tracking-prevention list blocks peerjs.com as a
+  third-party tracker (Edge "Balanced", many corporate policies).
+
+  Architecture: window.opener (the tether) postMessages to us; we own
+  the PeerJS peer + DataConnections, and relay all events back.
+  After WebRTC handshake the connection is direct P2P — we just hold
+  the signaling.
+
+  Protocol (in: opener → bridge):
+    { type:'init',     hostId, guestId, neighborhoodName? }
+    { type:'send',     to,    payload }       guest→host or host→one guest
+    { type:'broadcast', payload, excludePeer? } host→all guests
+    { type:'destroy' }
+    { type:'ping' }                            keepalive
+
+  Protocol (out: bridge → opener):
+    { type:'ready' }                           bridge loaded, awaiting init
+    { type:'role',    role:'host'|'guest'|'unavailable', peerId?, reason? }
+    { type:'guest-connected',    peerId }      host: a guest just opened
+    { type:'guest-disconnected', peerId }      host: a guest closed
+    { type:'host-connected' }                  guest: connected to host
+    { type:'host-disconnected' }               guest: host left
+    { type:'recv',    from, payload }
+    { type:'error',   reason, fatal:bool }
+    { type:'pong' }
+-->
+
+<style>
+  *,*::before,*::after { box-sizing:border-box; }
+  body {
+    margin:0; padding:24px;
+    background:#0a0a0a; color:#e8e8e8;
+    font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
+    min-height:100vh;
+  }
+  .card {
+    max-width:520px; margin:0 auto;
+    background:#141414; border:1px solid #2a2a2a; border-radius:12px;
+    padding:24px;
+  }
+  h1 { font-size:1.05rem; margin:0 0 4px; letter-spacing:.02em; }
+  .sub { color:#888; font-size:0.82rem; margin-bottom:18px; }
+  .pill {
+    display:inline-block; padding:3px 10px; border-radius:999px;
+    font-size:0.72rem; font-weight:600; letter-spacing:.04em;
+    background:#222; color:#aaa; text-transform:uppercase;
+  }
+  .pill.ok    { background:#0c3a1d; color:#7adf8f; }
+  .pill.warn  { background:#3a1d0c; color:#dfa37a; }
+  .pill.err   { background:#3a0c1d; color:#df7a8f; }
+  .pill.host  { background:#0c2d3a; color:#7accdf; }
+  .pill.guest { background:#2a0c3a; color:#bf7adf; }
+  .row { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 0; border-bottom:1px solid #1f1f1f; }
+  .row:last-child { border-bottom:0; }
+  .row-k { color:#888; font-size:0.78rem; }
+  .row-v { color:#ddd; font-size:0.82rem; font-family:ui-monospace,SFMono-Regular,monospace; }
+  .peers { margin-top:12px; }
+  .peers .row-v { font-size:0.74rem; }
+  .log {
+    margin-top:14px; max-height:140px; overflow:auto;
+    background:#0a0a0a; border:1px solid #1f1f1f; border-radius:8px;
+    padding:8px 10px; font:11.5px/1.45 ui-monospace,SFMono-Regular,monospace;
+    color:#9a9a9a;
+  }
+  .log .ok { color:#7adf8f; }
+  .log .warn { color:#dfa37a; }
+  .log .err { color:#df7a8f; }
+  .foot { color:#666; font-size:0.72rem; margin-top:14px; line-height:1.6; }
+  code { background:#1f1f1f; padding:1px 6px; border-radius:4px; font-size:0.78rem; color:#bdbdbd; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <h1>🛰️ Lobby Bridge</h1>
+    <span id="status-pill" class="pill">booting</span>
+  </div>
+  <div class="sub">Edge / corp-network workaround. First-party HTTPS context so peerjs.com isn't classified as a tracker. Keep this tab open while you're in the lobby.</div>
+
+  <div class="row"><span class="row-k">role</span><span class="row-v" id="role">—</span></div>
+  <div class="row"><span class="row-k">peer id</span><span class="row-v" id="peer-id">—</span></div>
+  <div class="row"><span class="row-k">opener</span><span class="row-v" id="opener-origin">—</span></div>
+  <div class="row"><span class="row-k">connected peers</span><span class="row-v" id="peer-count">0</span></div>
+
+  <div class="peers" id="peers"></div>
+
+  <div class="log" id="log"></div>
+
+  <div class="foot">
+    Close this window or its opener tether tab to tear down the lobby.<br>
+    Protocol: <code>rapp-lobby-bridge/1.0</code>
+  </div>
+</div>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+(function() {
+  'use strict';
+
+  const $ = (id) => document.getElementById(id);
+  const logEl   = $('log');
+  const pillEl  = $('status-pill');
+  const roleEl  = $('role');
+  const pidEl   = $('peer-id');
+  const peersEl = $('peers');
+  const cntEl   = $('peer-count');
+  const opEl    = $('opener-origin');
+
+  // ── State ─────────────────────────────────────────────────────────
+  let peer       = null;
+  let isHost     = false;
+  let myPeerId   = null;
+  let hostId     = null;
+  let guestId    = null;
+  const guests   = new Map();  // host side: peerId -> DataConnection
+  let hostConn   = null;       // guest side: DataConnection to host
+
+  const opener  = window.opener;
+  let openerOk  = false;
+  let openerOrigin = '*';  // we accept any opener; we validate by msg shape
+
+  // ── UI helpers ────────────────────────────────────────────────────
+  function setPill(text, cls) {
+    pillEl.textContent = text;
+    pillEl.className = 'pill ' + (cls || '');
+  }
+  function log(line, cls) {
+    const ts = new Date().toLocaleTimeString();
+    const div = document.createElement('div');
+    if (cls) div.className = cls;
+    div.textContent = `[${ts}] ${line}`;
+    logEl.appendChild(div);
+    logEl.scrollTop = logEl.scrollHeight;
+    // also mirror into the parent's console for grep-ability
+    try { (console[cls === 'err' ? 'error' : cls === 'warn' ? 'warn' : 'log'])('[lobby-bridge]', line); } catch {}
+  }
+  function renderPeers() {
+    cntEl.textContent = String(guests.size + (hostConn ? 1 : 0));
+    if (isHost) {
+      peersEl.innerHTML = Array.from(guests.keys()).map(p =>
+        `<div class="row"><span class="row-k">guest</span><span class="row-v">${escape(p)}</span></div>`
+      ).join('') || '<div class="row"><span class="row-k">guests</span><span class="row-v">(none yet)</span></div>';
+    } else if (hostConn) {
+      peersEl.innerHTML = `<div class="row"><span class="row-k">host</span><span class="row-v">${escape(hostConn.peer)}</span></div>`;
+    } else {
+      peersEl.innerHTML = '';
+    }
+  }
+  function escape(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // ── postMessage helpers ───────────────────────────────────────────
+  function tell(msg) {
+    if (!opener || opener.closed) return;
+    try { opener.postMessage(Object.assign({ schema: 'rapp-lobby-bridge/1.0' }, msg), openerOrigin); }
+    catch (e) { log('postMessage failed: ' + e.message, 'err'); }
+  }
+  function fatal(reason) {
+    log('fatal · ' + reason, 'err');
+    setPill('error', 'err');
+    tell({ type: 'error', reason, fatal: true });
+  }
+
+  // ── PeerJS lifecycle ──────────────────────────────────────────────
+  function init(payload) {
+    if (peer) { log('already initialized — ignoring re-init', 'warn'); return; }
+    if (!payload.hostId || !payload.guestId) { fatal('init missing hostId/guestId'); return; }
+    hostId  = payload.hostId;
+    guestId = payload.guestId;
+    if (payload.neighborhoodName) {
+      document.title = `🛰️ Lobby Bridge — ${payload.neighborhoodName}`;
+    }
+    setPill('claiming host…', 'warn');
+    log(`init · host=${hostId} guest=${guestId}`, '');
+    claimHost();
+  }
+
+  function claimHost() {
+    let trial;
+    try {
+      trial = new Peer(hostId, { debug: 0 });
+    } catch (e) {
+      fatal('PeerJS init failed: ' + e.message);
+      return;
+    }
+    let resolved = false;
+    const watchdog = setTimeout(() => {
+      if (resolved) return;
+      resolved = true;
+      try { trial.destroy(); } catch {}
+      fatal('broker unreachable (claim-host watchdog 8s)');
+    }, 8000);
+
+    trial.on('open', (id) => {
+      if (resolved) return;
+      resolved = true;
+      clearTimeout(watchdog);
+      peer = trial;
+      isHost = true;
+      myPeerId = id;
+      roleEl.textContent = 'host';
+      pidEl.textContent  = id;
+      setPill('host', 'host');
+      log(`claimed host ${id}`, 'ok');
+      tell({ type: 'role', role: 'host', peerId: id });
+
+      trial.on('connection', wireGuestConn);
+      trial.on('error',        (e) => log('host peer error: ' + (e?.type || e?.message || e), 'warn'));
+      trial.on('disconnected', () => { setPill('reconnecting…', 'warn'); try { trial.reconnect(); } catch {} });
+      renderPeers();
+    });
+    trial.on('error', (err) => {
+      if (resolved) return;
+      if (err?.type === 'unavailable-id' || /taken|in use/i.test(err?.message || '')) {
+        resolved = true;
+        clearTimeout(watchdog);
+        try { trial.destroy(); } catch {}
+        joinAsGuest();
+        return;
+      }
+      if (err?.type === 'network' || err?.type === 'socket-error' || err?.type === 'socket-closed' || err?.type === 'server-error') {
+        resolved = true;
+        clearTimeout(watchdog);
+        try { trial.destroy(); } catch {}
+        fatal('broker unreachable (' + err.type + ')');
+      } else {
+        log('host peer error (continuing): ' + (err?.type || err?.message || err), 'warn');
+      }
+    });
+  }
+
+  function joinAsGuest() {
+    setPill('joining…', 'warn');
+    let trial;
+    try {
+      trial = new Peer(guestId, { debug: 0 });
+    } catch (e) {
+      fatal('PeerJS init failed: ' + e.message);
+      return;
+    }
+    let resolved = false;
+    const watchdog = setTimeout(() => {
+      if (resolved) return;
+      resolved = true;
+      try { trial.destroy(); } catch {}
+      fatal('broker unreachable (join-guest watchdog 8s)');
+    }, 8000);
+
+    trial.on('open', () => {
+      if (resolved) return;
+      resolved = true;
+      clearTimeout(watchdog);
+      peer = trial;
+      isHost = false;
+      myPeerId = guestId;
+      roleEl.textContent = 'guest';
+      pidEl.textContent  = guestId;
+      setPill('connecting to host…', 'guest');
+      log(`opened as guest ${guestId} · dialing host ${hostId}`, '');
+
+      const c = trial.connect(hostId, { reliable: true });
+      hostConn = c;
+      wireHostConn(c);
+    });
+    trial.on('error', (err) => {
+      if (resolved) return;
+      if (err?.type === 'network' || err?.type === 'socket-error' || err?.type === 'socket-closed' || err?.type === 'server-error') {
+        resolved = true;
+        clearTimeout(watchdog);
+        try { trial.destroy(); } catch {}
+        fatal('broker unreachable (' + err.type + ')');
+      } else {
+        log('guest peer error (continuing): ' + (err?.type || err?.message || err), 'warn');
+      }
+    });
+  }
+
+  // ── Connection wiring ─────────────────────────────────────────────
+  function wireGuestConn(conn) {
+    // host: a guest dialed in
+    log('guest connecting · ' + conn.peer.slice(-12), '');
+    conn.on('open', () => {
+      guests.set(conn.peer, conn);
+      log('guest opened · ' + conn.peer.slice(-12), 'ok');
+      tell({ type: 'guest-connected', peerId: conn.peer });
+      renderPeers();
+    });
+    conn.on('data', (payload) => {
+      tell({ type: 'recv', from: conn.peer, payload });
+    });
+    conn.on('close', () => {
+      guests.delete(conn.peer);
+      log('guest closed · ' + conn.peer.slice(-12), 'warn');
+      tell({ type: 'guest-disconnected', peerId: conn.peer });
+      renderPeers();
+    });
+    conn.on('error', (e) => log('guest conn error: ' + (e?.message || e), 'warn'));
+  }
+
+  function wireHostConn(conn) {
+    conn.on('open', () => {
+      setPill('connected', 'guest');
+      log('host opened · ' + conn.peer.slice(-12), 'ok');
+      tell({ type: 'role', role: 'guest', peerId: myPeerId });
+      tell({ type: 'host-connected' });
+      renderPeers();
+    });
+    conn.on('data', (payload) => {
+      tell({ type: 'recv', from: conn.peer, payload });
+    });
+    conn.on('close', () => {
+      log('host closed', 'warn');
+      tell({ type: 'host-disconnected' });
+      hostConn = null;
+      renderPeers();
+    });
+    conn.on('error', (e) => log('host conn error: ' + (e?.message || e), 'warn'));
+  }
+
+  // ── Forward send/broadcast from opener ────────────────────────────
+  function handleSend(to, payload) {
+    if (isHost) {
+      const c = guests.get(to);
+      if (!c) { log('send: unknown guest ' + to, 'warn'); return; }
+      try { c.send(payload); } catch (e) { log('send failed: ' + e.message, 'warn'); }
+    } else {
+      if (!hostConn) { log('send: no host conn yet', 'warn'); return; }
+      try { hostConn.send(payload); } catch (e) { log('send failed: ' + e.message, 'warn'); }
+    }
+  }
+  function handleBroadcast(payload, exclude) {
+    if (!isHost) {
+      // guest broadcast just hops to host
+      if (hostConn) try { hostConn.send(payload); } catch {}
+      return;
+    }
+    for (const [pid, c] of guests) {
+      if (pid === exclude) continue;
+      try { c.send(payload); } catch (e) { log('broadcast failed: ' + e.message, 'warn'); }
+    }
+  }
+
+  // ── Teardown ──────────────────────────────────────────────────────
+  function destroy() {
+    log('teardown', 'warn');
+    try { for (const c of guests.values()) c.close(); } catch {}
+    guests.clear();
+    try { hostConn?.close(); } catch {}
+    hostConn = null;
+    try { peer?.destroy(); } catch {}
+    peer = null;
+    setPill('destroyed', 'err');
+  }
+
+  // ── Opener watchdog: close ourselves if the opener tab dies ───────
+  setInterval(() => {
+    if (!opener || opener.closed) {
+      log('opener closed — shutting down', 'warn');
+      try { destroy(); } catch {}
+      setTimeout(() => window.close(), 250);
+    }
+  }, 2000);
+
+  // ── Message router ────────────────────────────────────────────────
+  window.addEventListener('message', (e) => {
+    // Allow same-origin OR any opener (we don't know operator's localhost port).
+    // We trust the schema field as a soft signal.
+    const m = e.data;
+    if (!m || typeof m !== 'object') return;
+    if (m.schema && m.schema !== 'rapp-lobby-bridge/1.0') return;
+    if (!openerOk) {
+      openerOk = true;
+      openerOrigin = e.origin || '*';
+      opEl.textContent = openerOrigin;
+      log('opener bound · ' + openerOrigin, 'ok');
+    }
+    switch (m.type) {
+      case 'init':      init(m); break;
+      case 'send':      handleSend(m.to, m.payload); break;
+      case 'broadcast': handleBroadcast(m.payload, m.excludePeer); break;
+      case 'destroy':   destroy(); break;
+      case 'ping':      tell({ type: 'pong' }); break;
+      default:          log('unknown msg type: ' + m.type, 'warn');
+    }
+  });
+
+  // ── Boot ──────────────────────────────────────────────────────────
+  if (typeof Peer === 'undefined') {
+    fatal('PeerJS failed to load (CDN unreachable?)');
+  } else {
+    setPill('ready', 'ok');
+    log('bridge ready — awaiting init from opener', 'ok');
+    tell({ type: 'ready' });
+  }
+
+  // No opener at all? Surface a friendly message.
+  if (!opener) {
+    setTimeout(() => {
+      if (!openerOk) {
+        roleEl.textContent = 'orphan';
+        log('no window.opener — this page must be opened by a tether window', 'warn');
+        setPill('no opener', 'warn');
+      }
+    }, 1000);
+  }
+})();
+</script>
+
+</body>
+</html>

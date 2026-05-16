@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brainstem Voice — Apple Shortcut</title>
+<meta name="description" content="The 5-action Apple Shortcut that turns Siri into a brainstem client. Watch, iPhone, Mac, HomePod, CarPlay — every Apple voice surface, one bundle.">
+<meta property="og:title" content="Brainstem Voice — Apple Shortcut">
+<meta property="og:description" content="Ask your brainstem via Siri on any Apple device. Zero native code.">
+<meta property="og:url" content="https://kody-w.github.io/RAPP/installer/shortcuts/brainstem-voice/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='28'%3E🎙️%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --border:#21262d; --border2:#30363d;
+    --fg:#e6edf3; --dim:#8b949e; --muted:#484f58;
+    --green:#238636; --green-2:#2ea043; --green-3:#3fb950;
+    --blue:#1f6feb; --blue-2:#58a6ff;
+    --purple:#8b5cf6; --purple-2:#a78bfa;
+    --pink:#f778ba;
+    --warn:#d29922;
+    --code-bg:#0d1117;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:var(--bg);color:var(--fg);min-height:100vh;line-height:1.65;
+    padding:48px 24px;display:flex;flex-direction:column;align-items:center}
+  a{color:var(--blue-2);text-decoration:none}a:hover{text-decoration:underline}
+  code,kbd,pre{font-family:"SF Mono","Fira Code",ui-monospace,monospace;font-size:13px}
+  code{background:var(--panel);padding:2px 6px;border-radius:4px;color:var(--purple-2)}
+  pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;
+    padding:14px 16px;overflow-x:auto;margin:8px 0}
+  pre code{background:transparent;padding:0;color:var(--fg)}
+
+  .breadcrumb{font-size:12px;color:var(--muted);margin-bottom:24px;text-align:center}
+  .breadcrumb a{color:var(--dim)}
+
+  .hero{text-align:center;max-width:680px;margin-bottom:24px}
+  .hero .icon{font-size:64px;margin-bottom:16px;filter:drop-shadow(0 0 12px rgba(247,120,186,.25))}
+  .hero h1{font-size:36px;font-weight:700;margin-bottom:8px;letter-spacing:-.5px}
+  .hero h1 .grad{background:linear-gradient(90deg,#f778ba,#a78bfa,#58a6ff);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{color:var(--dim);font-size:16px}
+
+  .status-banner{max-width:680px;width:100%;margin-bottom:32px;
+    background:rgba(210,153,34,.08);border:1px solid var(--warn);border-radius:8px;
+    padding:14px 18px;color:var(--fg);font-size:14px;display:flex;gap:12px;align-items:flex-start}
+  .status-banner .dot{font-size:14px;line-height:1.4;flex-shrink:0}
+  .status-banner strong{color:var(--warn)}
+
+  .section{max-width:680px;width:100%;margin:0 0 32px;
+    background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:24px 28px}
+  .section h2{font-size:20px;font-weight:700;margin-bottom:14px}
+  .section h3{font-size:15px;color:var(--purple-2);text-transform:uppercase;letter-spacing:1px;margin:20px 0 8px;font-weight:700}
+  .section p{color:var(--dim);font-size:14.5px;margin-bottom:10px}
+  .section ol, .section ul{margin-left:24px;color:var(--dim);font-size:14.5px;margin-bottom:10px}
+  .section ol li, .section ul li{margin-bottom:6px}
+  .section ol li strong, .section ul li strong{color:var(--fg)}
+
+  .actions-list{counter-reset:action;list-style:none;margin-left:0!important;padding:0}
+  .actions-list li{counter-increment:action;background:var(--code-bg);border:1px solid var(--border);
+    border-radius:8px;padding:12px 16px 12px 48px;margin-bottom:10px;position:relative}
+  .actions-list li::before{content:counter(action);position:absolute;left:14px;top:11px;
+    width:24px;height:24px;background:var(--purple);border-radius:50%;color:#fff;
+    font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center}
+  .actions-list li strong{color:var(--purple-2);display:block;margin-bottom:4px;font-family:"SF Mono",monospace;font-size:13px}
+  .actions-list li span{color:var(--dim);font-size:13px}
+  .actions-list li code{font-size:11.5px}
+
+  .surfaces{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .surface{padding:6px 12px;background:var(--code-bg);border:1px solid var(--border);
+    border-radius:6px;font-size:12px;color:var(--dim);font-weight:500}
+
+  table{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0}
+  th, td{padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)}
+  th{color:var(--purple-2);text-transform:uppercase;letter-spacing:.5px;font-size:11px;font-weight:700}
+  td{color:var(--dim)}
+
+  footer{max-width:680px;width:100%;text-align:center;color:var(--muted);font-size:12px;
+    border-top:1px solid var(--border);padding-top:18px}
+</style>
+</head>
+<body>
+
+<div class="breadcrumb">
+  <a href="../../../">RAPP</a> &nbsp;/&nbsp; <a href="../../">installer</a> &nbsp;/&nbsp; <a href="../">shortcuts</a> &nbsp;/&nbsp; brainstem-voice
+</div>
+
+<div class="hero">
+  <div class="icon">🎙️</div>
+  <h1>Brainstem <span class="grad">Voice</span></h1>
+  <p>The 5-action Apple Shortcut that turns Siri into a brainstem client. <em>"Hey Siri, ask Brainstem…"</em></p>
+</div>
+
+<div class="status-banner">
+  <span class="dot">🟡</span>
+  <span><strong>Author phase.</strong> The protocol is locked and the infrastructure is in place. The signed <code>.shortcut</code> file lands here once authored on a Mac with Shortcuts.app. Until then, follow the build steps below — it takes 5 minutes.</span>
+</div>
+
+<div class="section">
+  <h2>What it does</h2>
+  <p>You say <em>"Hey Siri, ask Brainstem [thing]"</em> (or tap the Shortcut). Siri dictates → POSTs to your brainstem's <code>/chat</code> endpoint → extracts the <code>voice_response</code> field → speaks it aloud. The brainstem already emits a TTS-shaped voice slot for exactly this; the Shortcut is just the harness.</p>
+
+  <h3>Surfaces it covers</h3>
+  <div class="surfaces">
+    <span class="surface">📱 iPhone</span>
+    <span class="surface">📱 iPad</span>
+    <span class="surface">💻 Mac</span>
+    <span class="surface">⌚ Apple Watch</span>
+    <span class="surface">🔊 HomePod</span>
+    <span class="surface">🚗 CarPlay</span>
+  </div>
+  <p>One bundle. Six surfaces. <strong>Zero native code.</strong></p>
+</div>
+
+<div class="section">
+  <h2>Build it (5 minutes)</h2>
+
+  <p>Open <strong>Shortcuts.app</strong> on macOS or iOS. <strong>File → New Shortcut.</strong> Name it <code>Brainstem Voice</code>. Add these 5 actions in order:</p>
+
+  <ol class="actions-list">
+    <li>
+      <strong>Ask for Input</strong>
+      <span>Prompt: <em>"What do you want to ask?"</em>. Input Type: Text. (When triggered from Siri or Watch, this becomes the dictation prompt automatically.)</span>
+    </li>
+    <li>
+      <strong>Get Contents of URL</strong>
+      <span>URL: <code>{your_brainstem_url}/chat</code>. Method: <code>POST</code>. Headers: <code>Content-Type: application/json</code>. Request Body: JSON with <code>user_input</code> = <em>Provided Input</em> and <code>conversation_history</code> = empty list.</span>
+    </li>
+    <li>
+      <strong>Get Dictionary Value</strong>
+      <span>Get: Value. Key: <code>voice_response</code>. From: <em>Contents of URL</em>.</span>
+    </li>
+    <li>
+      <strong>If</strong> (optional fallback)
+      <span>If <em>Dictionary Value</em> is empty, fetch <code>response</code> instead. (Used when voice mode is off.)</span>
+    </li>
+    <li>
+      <strong>Speak Text</strong>
+      <span>Text: <em>Dictionary Value</em>. Voice: system default. <em>Wait Until Finished</em>: on.</span>
+    </li>
+  </ol>
+
+  <p>Tap the play button to test. Type or speak something. Confirm the brainstem's voice response is spoken back.</p>
+
+  <h3>Then sign + ship</h3>
+  <ol>
+    <li><strong>File → Export…</strong> → save as <code>brainstem-voice.shortcut</code>.</li>
+    <li>Sign for public install: <code>bash installer/shortcuts/sign.sh brainstem-voice.shortcut</code></li>
+    <li><strong>Share → Copy iCloud Link</strong> → paste it in this directory's <code>README.md</code>.</li>
+  </ol>
+</div>
+
+<div class="section">
+  <h2>Configure on first run</h2>
+  <p>The Shortcut prompts once and stores the answers as Shortcut variables:</p>
+  <table>
+    <thead>
+      <tr><th>Variable</th><th>What</th><th>Example</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>brainstem_url</code></td><td>HTTP root of your brainstem</td><td><code>http://192.168.1.42:7071</code></td></tr>
+      <tr><td><code>auth_token</code></td><td>Bearer token (Tier 2 only)</td><td>empty for Tier 1</td></tr>
+      <tr><td><code>voice_mode</code></td><td>Whether to expect a voice slot</td><td>default <code>true</code></td></tr>
+    </tbody>
+  </table>
+  <p>To change later, edit the Shortcut's variables in Shortcuts.app — no need to rebuild.</p>
+</div>
+
+<div class="section">
+  <h2>Why this and not a native app</h2>
+  <p>A native watchOS / iOS app would need an Apple Developer Program enrollment ($99/yr), App Store review per release, watchOS-specific code, per-OS-version regression testing. This Shortcut needs <strong>none of it</strong>. The brainstem already emits the voice slot. The Shortcut is harness, not product.</p>
+  <p>The constitutional posture is captured in <a href="../../../pages/vault/Architecture/Surfaces%20%E2%80%94%20Mobile,%20Watch,%20Voice.md">the Surfaces vault note</a>: reach new form factors with web tech and OS-native primitives, not native code.</p>
+</div>
+
+<footer>
+  Part of <a href="../../../">RAPP</a> · <a href="../">other shortcuts</a> ·
+  <a href="../protocol.md">protocol</a> · <a href="https://github.com/kody-w/RAPP">GitHub</a>
+</footer>
+
+</body>
+</html>

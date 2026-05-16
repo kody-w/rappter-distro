@@ -1,0 +1,31 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store
+.venv/
+node_modules/
+.wrangler/
+*.egg-info/
+dist/
+build/
+
+# Azure Functions local config (contains secrets — never commit)
+local.settings.json
+.python_packages/
+bin/
+obj/
+
+# Wrangler runtime
+.wrangler/
+.dev.vars
+
+# Any .env in any subdirectory
+**/.env
+**/.env.local
+
+# Brainstem runtime data (machine-specific)
+.brainstem_data/
+.brainstem_book.json
+.copilot_token
+.copilot_session
+.copilot_pending

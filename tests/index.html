@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAPP — in-browser tests</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='28'%3E🧪%3C/text%3E%3C/svg%3E">
+<style>
+  body{margin:0;padding:32px;background:#0d1117;color:#e6edf3;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.5}
+  h1{font-size:22px;margin-bottom:6px}
+  .sub{color:#8b949e;font-size:13px;margin-bottom:24px}
+  .crumb{color:#484f58;font-size:12px;margin-bottom:18px}
+  .crumb a{color:#8b949e}
+  #out{font-family:"SF Mono",ui-monospace,monospace;font-size:13px;
+    background:#161b22;border:1px solid #21262d;border-radius:8px;padding:18px;
+    white-space:pre-wrap;max-width:920px}
+  .ok{color:#3fb950}
+  .fail{color:#f85149}
+  .head{color:#58a6ff;font-weight:700;margin-top:14px}
+  .summary{margin-top:14px;padding:10px;border-radius:6px;font-weight:600}
+  .summary.green{background:rgba(63,185,80,.1);color:#3fb950;border:1px solid rgba(63,185,80,.3)}
+  .summary.red{background:rgba(248,81,73,.1);color:#f85149;border:1px solid rgba(248,81,73,.3)}
+  .running{color:#d29922}
+  .links{margin-top:18px;font-size:13px}
+  .links a{color:#58a6ff;margin-right:14px}
+</style>
+</head>
+<body>
+
+<div class="crumb"><a href="../">RAPP</a> &nbsp;›&nbsp; tests</div>
+
+<h1>🧪 RAPP v1 — in-browser tests</h1>
+<div class="sub">Loads <code>brainstem/rapp.js</code> and the starter agents from <code>agents/</code>, then runs the full v1 contract suite in your browser. The same suite passes via <code>node tests/run-tests.mjs</code>.</div>
+
+<div id="out"><span class="running">running…</span></div>
+
+<div class="links">
+  <a href="../brainstem/">→ open the brainstem</a>
+  <a href="../">→ landing</a>
+</div>
+
+<script src="../brainstem/rapp.js"></script>
+<script>
+const out = document.getElementById('out');
+let pass = 0, fail = 0;
+const failures = [];
+function write(html){ out.innerHTML += html; }
+function eq(a,b){ return JSON.stringify(a) === JSON.stringify(b); }
+function assert(c, m){ if(!c) throw new Error(m||'assertion failed'); }
+function assertEq(a,b,m){ if(!eq(a,b)) throw new Error(`${m||'not equal'} — expected ${JSON.stringify(b)}, got ${JSON.stringify(a)}`); }
+async function test(name, fn){
+  try { await fn(); pass++; write(`  <span class="ok">✓</span> ${escapeHtml(name)}\n`); }
+  catch(e){ fail++; failures.push({name, e}); write(`  <span class="fail">✗ ${escapeHtml(name)}\n    ${escapeHtml(e.message)}</span>\n`); }
+}
+function head(t){ write(`<div class="head">${escapeHtml(t)}</div>`); }
+function escapeHtml(s){ return String(s).replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'})[c]); }
+
+const STARTER = ['hello_agent.py','dice_agent.py','weather_poet_agent.py','sloshtest_agent.py'];
+
+async function fetchText(p){ const r = await fetch(p); if(!r.ok) throw new Error(`fetch ${p} ${r.status}`); return r.text(); }
+
+(async () => {
+  out.innerHTML = '';
+  head('Seed & mnemonic');
+  await test('seedHash deterministic', () => assertEq(RAPP.Seed.seedHash('hi'), RAPP.Seed.seedHash('hi')));
+  await test('mnemonic round-trips a forged seed', () => {
+    const s = RAPP.Seed.forgeSeed('@x/y','core','community',['a','b'],[]);
+    const w = RAPP.Mnemonic.seedToWords(s);
+    assertEq(w.split(' ').length, 7);
+    assertEq(RAPP.Mnemonic.wordsToSeed(w).toString(), s.toString());
+  });
+  await test('1024 mnemonic words', () => assertEq(RAPP.Mnemonic.MNEMONIC_WORDS.length, 1024));
+
+  head('Starter agents — parse + mint + round-trip');
+  for (const f of STARTER) {
+    let src;
+    await test(`fetch ${f}`, async () => { src = await fetchText(`../agents/${f}`); assert(src.length > 100); });
+    await test(`parse ${f}`, () => {
+      const p = RAPP.Agent.parseAgentSource(src, f);
+      assert(p.hasBasicAgent && p.hasPerform && p.hasManifest);
+      assert(p.name && p.className);
+    });
+    await test(`mint ${f}`, async () => {
+      const c = await RAPP.Card.mintCard(src, f);
+      assert(c.schema === 'rapp-card/1.0');
+      assert(c.card.incantation.split(' ').length === 7);
+    });
+    await test(`round-trip ${f} bytewise`, async () => {
+      const c = await RAPP.Card.mintCard(src, f);
+      const back = await RAPP.Card.cardToAgentSource(c);
+      assertEq(back.source, src);
+    });
+  }
+
+  head('Binder');
+  await test('binder add/remove + JSON round-trip', async () => {
+    const b = RAPP.Binder.empty('@browser/test');
+    for (const f of STARTER) {
+      const src = await fetchText(`../agents/${f}`);
+      RAPP.Binder.addCard(b, await RAPP.Card.mintCard(src, f));
+    }
+    assertEq(b.cards.length, STARTER.length);
+    const j = JSON.stringify(b);
+    const back = JSON.parse(j);
+    assertEq(back.cards.length, STARTER.length);
+    for (const c of back.cards) {
+      const a = await RAPP.Card.cardToAgentSource(c);
+      assert(a.source.length > 0);
+    }
+  });
+
+  head('Card detection — sha256 mismatch');
+  await test('rejects tampered card', async () => {
+    const src = await fetchText('../agents/hello_agent.py');
+    const c = await RAPP.Card.mintCard(src, 'hello_agent.py');
+    c.source += '\n# tamper\n';
+    let threw = false;
+    try { await RAPP.Card.cardToAgentSource(c); } catch { threw = true; }
+    assert(threw);
+  });
+
+  head('Multi-agent chain');
+  await test('weather_poet → sloshtest via slush', async () => {
+    // Mock the brainstem chain loop: first agent's data_slush is fed into second agent's context.
+    const wpSrc = await fetchText('../agents/weather_poet_agent.py');
+    const stSrc = await fetchText('../agents/sloshtest_agent.py');
+    await RAPP.Card.mintCard(wpSrc, 'weather_poet_agent.py');
+    await RAPP.Card.mintCard(stSrc, 'sloshtest_agent.py');
+    // Stub-runner mirrors brainstem/index.html runAgentStub
+    const stub = (name, kw, slush) => {
+      if (name === 'WeatherPoet') return JSON.stringify({status:'success', data_slush:{mood:'sunny',temp_f:71,city:kw.query||'Seattle'}});
+      if (name === 'SloshTest')   return JSON.stringify({status:'success', received_slush: slush||{}, data_slush:{upstream_keys:Object.keys(slush||{})}});
+    };
+    const r1 = JSON.parse(stub('WeatherPoet',{query:'Kyoto'},null));
+    const r2 = JSON.parse(stub('SloshTest',{},r1.data_slush));
+    assertEq(r2.received_slush.city, 'Kyoto');
+  });
+
+  // Done
+  const cls = fail ? 'red' : 'green';
+  write(`\n<div class="summary ${cls}">${pass}/${pass+fail} passed${fail?`, ${fail} failed`:''}.</div>`);
+  if (fail) {
+    write(`<div style="margin-top:10px;color:#8b949e">Failures:</div>`);
+    for (const f of failures) write(`<div class="fail">  • ${escapeHtml(f.name)} — ${escapeHtml(f.e.message)}</div>`);
+  }
+})().catch(e => {
+  write(`<div class="summary red">Suite crashed: ${escapeHtml(e.message)}</div>`);
+});
+</script>
+
+</body>
+</html>

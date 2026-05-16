@@ -1,0 +1,15 @@
+{
+  "schema": "rapp-rappid/2.0",
+  "rappid": "rappid:v2:neighborhood:@local/local-only-test:f42ae7f76b3b46ea96734566787348ef@local/local-only-test",
+  "kind": "neighborhood",
+  "name": "local-only-test",
+  "display_name": "Local-Only Test Neighborhood",
+  "github": null,
+  "url": null,
+  "parent_rappid": "rappid:v2:prototype:@rapp/origin:0b635450c04249fbb4b1bdb571044dec@github.com/kody-w/RAPP",
+  "parent_repo": "https://github.com/kody-w/RAPP",
+  "planted_by": "kody-w",
+  "planted_at": "2026-05-08T00:00:00Z",
+  "kernel_version": "0.6.0",
+  "_note": "Local-only diagnostic fixture; no GitHub auth required. Mounted via file:// for the on-device verification scenario."
+}

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0d1117">
+<title>Plant your AI's front door — RAPP</title>
+<meta name="description" content="One command. Your kernel-compliant RAPP front door at your-handle.github.io/your-name. Yours forever.">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #0d1117;
+    color: #e6edf3;
+    min-height: 100vh;
+    min-height: 100dvh;
+    -webkit-text-size-adjust: 100%;
+    line-height: 1.5;
+  }
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 24px;
+    padding-top: max(24px, env(safe-area-inset-top, 24px));
+    padding-bottom: max(24px, env(safe-area-inset-bottom, 24px));
+  }
+  header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .door-icon { font-size: 48px; margin-bottom: 12px; }
+  h1 {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+  .tagline {
+    color: #8b949e;
+    font-size: 15px;
+  }
+  .from-line {
+    text-align: center;
+    margin-bottom: 24px;
+    padding: 10px 14px;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 10px;
+    font-size: 13px;
+    color: #8b949e;
+  }
+  .from-line code {
+    color: #58a6ff;
+    font-family: "SF Mono", Menlo, monospace;
+  }
+  .device-pane {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .device-pane h2 {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .device-pane h2 .badge {
+    font-size: 11px;
+    background: #1f6feb;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-weight: 500;
+  }
+  .device-pane p {
+    color: #c9d1d9;
+    font-size: 14px;
+    margin-bottom: 14px;
+  }
+  pre.cmd {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 13px;
+    color: #c9d1d9;
+    overflow-x: auto;
+    font-family: "SF Mono", Menlo, monospace;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .btn-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  button {
+    background: #1f6feb;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+    -webkit-appearance: none;
+    font-family: inherit;
+  }
+  button:hover { background: #2477f3; }
+  button.secondary {
+    background: #21262d;
+    color: #c9d1d9;
+    border: 1px solid #30363d;
+  }
+  button.secondary:hover { background: #2d333b; }
+  button.copied { background: #3fb950; }
+  .steps {
+    list-style: none;
+    counter-reset: step;
+    margin-top: 12px;
+  }
+  .steps li {
+    counter-increment: step;
+    position: relative;
+    padding-left: 36px;
+    margin-bottom: 14px;
+    color: #c9d1d9;
+    font-size: 14px;
+  }
+  .steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: -2px;
+    width: 26px;
+    height: 26px;
+    background: #1f6feb;
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 26px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  details {
+    margin-top: 16px;
+    border-top: 1px solid #21262d;
+    padding-top: 16px;
+  }
+  details summary {
+    cursor: pointer;
+    color: #58a6ff;
+    font-size: 13px;
+    font-weight: 500;
+    list-style: none;
+  }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::after { content: " ↓"; }
+  details[open] summary::after { content: " ↑"; }
+  details p { margin-top: 12px; font-size: 13px; color: #8b949e; }
+  .what-is {
+    margin-top: 24px;
+    padding: 18px;
+    background: #161b22;
+    border: 1px dashed #30363d;
+    border-radius: 12px;
+    font-size: 13px;
+    color: #8b949e;
+    line-height: 1.6;
+  }
+  .what-is strong { color: #c9d1d9; }
+  footer {
+    text-align: center;
+    margin-top: 32px;
+    color: #6e7681;
+    font-size: 12px;
+  }
+  footer a { color: #58a6ff; text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="door-icon">🚪</div>
+    <h1>Plant your AI's front door</h1>
+    <div class="tagline">Yours forever, on the public internet.</div>
+  </header>
+
+  <div class="from-line" id="from-line" hidden>
+    Introduced by <code id="from-link"></code>
+  </div>
+
+  <!-- Desktop pane -->
+  <section class="device-pane" id="pane-desktop" hidden>
+    <h2>You're on a computer <span class="badge">DESKTOP</span></h2>
+    <p>Run this in your terminal. Takes ~60 seconds.</p>
+    <pre class="cmd" id="cmd-desktop">curl -fsSL https://kody-w.github.io/RAPP/installer/plant.sh | bash</pre>
+    <div class="btn-row">
+      <button id="btn-copy">Copy command</button>
+      <button class="secondary" id="btn-show-mobile">I'm actually on mobile</button>
+    </div>
+    <details>
+      <summary>What does this do?</summary>
+      <p>Creates a public GitHub repo at <code>&lt;your-handle&gt;.github.io/&lt;your-name&gt;</code>, drops in the byte-identical RAPP kernel, generates your front-door page, and enables GitHub Pages. The repo and the URL are yours; nothing depends on a central server. <a href="https://kody-w.github.io/RAPP/pages/vault/Architecture/Mirror%20Spec.md">Mirror Spec</a> · <a href="https://kody-w.github.io/RAPP/pages/vault/Founding%20Decisions/The%20Front%20Door.md">The Front Door</a></p>
+    </details>
+  </section>
+
+  <!-- Mobile pane -->
+  <section class="device-pane" id="pane-mobile" hidden>
+    <h2>You're on mobile <span class="badge">MOBILE</span></h2>
+    <p>Planting requires a computer (you need a terminal + GitHub CLI). Two options:</p>
+
+    <ol class="steps">
+      <li>Send this page to a computer you own — paste the URL into iMessage to yourself, AirDrop it, or open it in your laptop browser. Then run the command there.</li>
+      <li>Or visit a friend's already-planted front door (scan their QR) and chat with their AI from this device. You don't have to plant your own to be a visitor.</li>
+    </ol>
+
+    <div class="btn-row">
+      <button id="btn-share">Share to my computer</button>
+      <button class="secondary" id="btn-show-desktop">I'm actually on desktop</button>
+    </div>
+
+    <pre class="cmd" style="margin-top:16px;" id="cmd-mobile">curl -fsSL https://kody-w.github.io/RAPP/installer/plant.sh | bash</pre>
+    <div class="btn-row">
+      <button class="secondary" id="btn-copy-mobile">Copy command anyway</button>
+    </div>
+  </section>
+
+  <div class="what-is">
+    <strong>What's a front door?</strong> A planted seed — your AI's claimed real estate on the public internet, kernel-compliant by structural fact. The kernel is the seed's DNA, byte-identical with the grail; everything that grows around it (agents, soul, UI, twins) is yours. Yours forever. No vendor controls it.
+  </div>
+
+  <footer>
+    <a href="https://kody-w.github.io/RAPP/">RAPP</a> ·
+    <a href="https://github.com/kody-w/RAPP">source</a> ·
+    <a href="./plant_qr.html">share via QR</a> ·
+    <a href="./seed.html">🌱 nominate a place</a>
+  </footer>
+</div>
+
+<script>
+"use strict";
+
+// Detect device type from User-Agent. Coarse but good enough for branching.
+function isMobile() {
+  return /iPhone|iPad|iPod|Android|Mobile/i.test(navigator.userAgent);
+}
+
+function showPane(id) {
+  document.getElementById("pane-desktop").hidden = (id !== "pane-desktop");
+  document.getElementById("pane-mobile").hidden  = (id !== "pane-mobile");
+}
+
+// Read URL params for cross-mirror lineage and command customization.
+const params = new URLSearchParams(location.search);
+const fromMirror = params.get("from");
+const repoName   = params.get("name");
+const displayName = params.get("display");
+
+// "Introduced by" line if ?from=<handle/repo> param present
+if (fromMirror) {
+  const fromLine = document.getElementById("from-line");
+  fromLine.hidden = false;
+  document.getElementById("from-link").textContent = fromMirror;
+}
+
+// Build the planting command, pre-filling env vars from URL params if present
+function buildCommand() {
+  const envParts = [];
+  if (repoName)    envParts.push(`MIRROR_REPO_NAME='${escapeShell(repoName)}'`);
+  if (displayName) envParts.push(`MIRROR_DISPLAY_NAME='${escapeShell(displayName)}'`);
+  if (fromMirror)  envParts.push(`MIRROR_PARENT='${escapeShell(fromMirror)}'`);
+  const prefix = envParts.length ? envParts.join(" \\\n  ") + " \\\n  " : "";
+  return prefix + "curl -fsSL https://kody-w.github.io/RAPP/installer/plant.sh | bash";
+}
+
+function escapeShell(s) {
+  // Single-quote-safe escape: replace ' with '\''
+  return String(s).replace(/'/g, "'\\''");
+}
+
+const cmd = buildCommand();
+document.getElementById("cmd-desktop").textContent = cmd;
+document.getElementById("cmd-mobile").textContent  = cmd;
+
+// Initial pane based on UA
+showPane(isMobile() ? "pane-mobile" : "pane-desktop");
+
+// Toggle buttons
+document.getElementById("btn-show-mobile").onclick = () => showPane("pane-mobile");
+document.getElementById("btn-show-desktop").onclick = () => showPane("pane-desktop");
+
+// Copy buttons
+async function copyCommand(btn) {
+  try {
+    await navigator.clipboard.writeText(cmd);
+    const orig = btn.textContent;
+    btn.textContent = "Copied ✓";
+    btn.classList.add("copied");
+    setTimeout(() => {
+      btn.textContent = orig;
+      btn.classList.remove("copied");
+    }, 1500);
+  } catch (e) {
+    btn.textContent = "Copy failed — select manually";
+  }
+}
+document.getElementById("btn-copy").onclick        = e => copyCommand(e.target);
+document.getElementById("btn-copy-mobile").onclick = e => copyCommand(e.target);
+
+// Share button (mobile)
+document.getElementById("btn-share").onclick = async () => {
+  const url = location.href;
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: "Plant your AI's front door",
+        text:  "Run this on your computer:",
+        url:   url,
+      });
+    } catch (_) { /* user cancelled */ }
+  } else {
+    // Fallback: copy URL to clipboard
+    try {
+      await navigator.clipboard.writeText(url);
+      const btn = document.getElementById("btn-share");
+      btn.textContent = "URL copied — send to your computer";
+    } catch (_) { /* silent */ }
+  }
+};
+</script>
+
+</body>
+</html>

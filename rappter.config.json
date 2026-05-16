@@ -1,0 +1,16 @@
+{
+  "schema": "rappter-distro/1.0",
+  "name": "rappter-distro",
+  "role": "distro",
+  "upstream_kernel": {
+    "repo": "kody-w/rapp-installer",
+    "version_min": "0.6.0",
+    "mirror": "kody-w/RAPP"
+  },
+  "sister_registries": {
+    "agents": "kody-w/RAR",
+    "rapplications": "kody-w/rapp_store",
+    "senses": "kody-w/RAPP_Sense_Store"
+  },
+  "description": "The full-bodied Rappter organism distro for the RAPP grail kernel."
+}

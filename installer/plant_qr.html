@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0d1117">
+<title>Share via QR — RAPP front door</title>
+<meta name="description" content="Generate a QR code that points at any RAPP front door. Print it, share it, stick it on a wall.">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #0d1117;
+    color: #e6edf3;
+    min-height: 100vh;
+    min-height: 100dvh;
+    -webkit-text-size-adjust: 100%;
+  }
+  .wrap {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 24px;
+    padding-top: max(24px, env(safe-area-inset-top, 24px));
+  }
+  header { text-align: center; margin-bottom: 24px; }
+  h1 {
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin-bottom: 6px;
+  }
+  .sub { color: #8b949e; font-size: 14px; }
+  .pane {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .pane h2 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #c9d1d9;
+  }
+  label {
+    display: block;
+    font-size: 12px;
+    color: #8b949e;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+  }
+  input[type="text"] {
+    width: 100%;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: #e6edf3;
+    font-size: 14px;
+    font-family: "SF Mono", Menlo, monospace;
+  }
+  input[type="text"]:focus { outline: none; border-color: #1f6feb; }
+  .options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  @media (max-width: 480px) { .options { grid-template-columns: 1fr; } }
+  button {
+    background: #1f6feb;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    -webkit-appearance: none;
+    font-family: inherit;
+  }
+  button.secondary {
+    background: #21262d;
+    color: #c9d1d9;
+    border: 1px solid #30363d;
+  }
+  button:hover { background: #2477f3; }
+  button.secondary:hover { background: #2d333b; }
+  .qr-display {
+    text-align: center;
+    margin-top: 16px;
+  }
+  .qr-img {
+    display: inline-block;
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    max-width: 100%;
+  }
+  .qr-img img { display: block; max-width: 100%; height: auto; }
+  .qr-target {
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 12px;
+    color: #8b949e;
+    word-break: break-all;
+    margin-bottom: 12px;
+  }
+  .preset-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+  .preset {
+    background: #21262d;
+    color: #c9d1d9;
+    border: 1px solid #30363d;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .preset:hover { background: #2d333b; }
+  footer {
+    text-align: center;
+    margin-top: 24px;
+    color: #6e7681;
+    font-size: 12px;
+  }
+  footer a { color: #58a6ff; text-decoration: none; }
+  .info-box {
+    background: #161b22;
+    border: 1px dashed #30363d;
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 12px;
+    color: #8b949e;
+    line-height: 1.6;
+    margin-top: 12px;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>📷 Share via QR</h1>
+    <div class="sub">Generate a QR pointing at any RAPP front door.</div>
+  </header>
+
+  <div class="pane">
+    <h2>What should the QR point to?</h2>
+
+    <div class="preset-row">
+      <button class="preset" data-preset="plant">The planter (anyone scans → can plant their own)</button>
+      <button class="preset" data-preset="custom">A specific front door</button>
+    </div>
+
+    <div style="margin-top:14px;">
+      <label for="target-url">Target URL</label>
+      <input type="text" id="target-url" placeholder="https://kody-w.github.io/RAPP/installer/plant.html">
+    </div>
+
+    <details style="margin-top:14px;">
+      <summary style="cursor:pointer;color:#58a6ff;font-size:13px;">Optional: tag with your handle</summary>
+      <div style="margin-top:10px;">
+        <label for="from-handle">Your mirror (optional, for lineage)</label>
+        <input type="text" id="from-handle" placeholder="your-handle/your-mirror">
+        <div class="info-box">When someone plants from this QR, their new mirror's <code>rappid.json</code> records you as the planted_from. Lineage walks back through the network. No registry needed.</div>
+      </div>
+    </details>
+
+    <div class="options">
+      <button id="btn-generate">Generate QR</button>
+      <button class="secondary" id="btn-clear">Clear</button>
+    </div>
+  </div>
+
+  <div class="pane qr-display" id="qr-pane" hidden>
+    <h2>Scan this</h2>
+    <div class="qr-img"><img id="qr-img" alt="QR code"></div>
+    <div class="qr-target" id="qr-target"></div>
+    <div class="options">
+      <button id="btn-print">Print</button>
+      <button class="secondary" id="btn-copy-link">Copy link</button>
+    </div>
+  </div>
+
+  <footer>
+    <a href="./plant.html">Plant your own front door</a> ·
+    <a href="./seed.html">🌱 Nominate a place</a> ·
+    <a href="https://kody-w.github.io/RAPP/">RAPP</a>
+  </footer>
+</div>
+
+<script>
+"use strict";
+
+const PLANT_URL = "https://kody-w.github.io/RAPP/installer/plant.html";
+
+const params = new URLSearchParams(location.search);
+const initialTarget = params.get("to");
+const initialFrom   = params.get("from");
+
+if (initialTarget) document.getElementById("target-url").value = initialTarget;
+else                document.getElementById("target-url").value = PLANT_URL;
+if (initialFrom)   document.getElementById("from-handle").value = initialFrom;
+
+document.querySelectorAll(".preset").forEach(btn => {
+  btn.onclick = () => {
+    const kind = btn.dataset.preset;
+    if (kind === "plant") {
+      document.getElementById("target-url").value = PLANT_URL;
+    } else if (kind === "custom") {
+      document.getElementById("target-url").value = "";
+      document.getElementById("target-url").focus();
+    }
+  };
+});
+
+function buildTargetUrl() {
+  let url = document.getElementById("target-url").value.trim();
+  if (!url) return "";
+  // If it's plant.html and we have a from-handle, append ?from=<handle>
+  const from = document.getElementById("from-handle").value.trim();
+  if (from && url.includes("plant.html")) {
+    const sep = url.includes("?") ? "&" : "?";
+    url = url + sep + "from=" + encodeURIComponent(from);
+  }
+  return url;
+}
+
+function generateQR() {
+  const target = buildTargetUrl();
+  if (!target) {
+    alert("Please enter a target URL.");
+    return;
+  }
+  const qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=2&data=" + encodeURIComponent(target);
+  document.getElementById("qr-img").src = qrUrl;
+  document.getElementById("qr-target").textContent = target;
+  document.getElementById("qr-pane").hidden = false;
+  document.getElementById("qr-pane").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+document.getElementById("btn-generate").onclick = generateQR;
+document.getElementById("btn-clear").onclick = () => {
+  document.getElementById("target-url").value = "";
+  document.getElementById("from-handle").value = "";
+  document.getElementById("qr-pane").hidden = true;
+};
+document.getElementById("btn-print").onclick = () => window.print();
+document.getElementById("btn-copy-link").onclick = async () => {
+  const target = document.getElementById("qr-target").textContent;
+  try {
+    await navigator.clipboard.writeText(target);
+    const btn = document.getElementById("btn-copy-link");
+    const orig = btn.textContent;
+    btn.textContent = "Copied ✓";
+    setTimeout(() => { btn.textContent = orig; }, 1500);
+  } catch (_) { /* silent */ }
+};
+
+// Auto-generate if target was supplied via URL param
+if (initialTarget) generateQR();
+</script>
+
+</body>
+</html>

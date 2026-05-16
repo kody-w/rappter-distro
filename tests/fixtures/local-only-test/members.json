@@ -1,0 +1,23 @@
+{
+  "schema": "rapp-neighborhood-members/1.0",
+  "neighborhood_rappid": "f42ae7f7-6b3b-46ea-9673-4566787348ef",
+  "version": 1,
+  "synced_at": "2026-05-08T00:00:00Z",
+  "synced_from": "manual_seed",
+  "members": [
+    {
+      "github_login": "kody-w",
+      "rappid": null,
+      "seed_url": null,
+      "joined_at": "2026-05-08T00:00:00Z",
+      "role": "founder",
+      "capabilities": ["all"],
+      "online_hint": null,
+      "notes": "Local-mode test seat — file:// access is the entire auth story for this fixture."
+    }
+  ],
+  "reconciliation": {
+    "policy": "local_only",
+    "notes": "This is a local-only fixture. Membership cannot drift from a GitHub source — there is no GitHub source."
+  }
+}

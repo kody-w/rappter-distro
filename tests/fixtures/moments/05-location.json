@@ -1,0 +1,7 @@
+{
+  "moment_id": "05-location",
+  "source_type": "location",
+  "expected_significance": "low",
+  "expected_channel_hint": "r/places (probably skipped — low significance)",
+  "source": "Location ping: lat 47.6062, lng -122.3321 (Pike Place Market, Seattle)\nTime: 2026-04-19 11:42 PDT\nNote: \"Coffee.\""
+}

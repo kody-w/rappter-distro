@@ -1,0 +1,8 @@
+{
+  "schema": "rapp-public-facets/1.0",
+  "neighborhood_rappid": "f42ae7f7-6b3b-46ea-9673-4566787348ef",
+  "public_facets": [
+    {"name": "neighborhood_purpose", "scope": "public", "description": "Diagnostic neighborhood used to verify local-mode subscription."},
+    {"name": "shared_agents", "scope": "neighborhood", "description": "Test agents that demonstrate the contract."}
+  ]
+}

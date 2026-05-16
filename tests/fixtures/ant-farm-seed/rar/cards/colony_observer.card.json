@@ -1,0 +1,25 @@
+{
+  "schema": "rapp-card/1.0",
+  "for_agent": "ColonyObserver",
+  "title": "🔭 ColonyObserver — synthesize swarm state",
+  "type_line": "Agent — Ant Farm Aggregator",
+  "rarity": "common",
+  "emits": "rapp-colony-observation/1.0",
+  "abilities": [
+    {
+      "kw": "Read-only",
+      "text": "Never spawns pheromones. Pure observer."
+    },
+    {
+      "kw": "Synthesize",
+      "text": "Counts pheromones, top ants, topic distribution, longest hash chain, recent trails."
+    },
+    {
+      "kw": "Cache-friendly",
+      "text": "Designed to be safe to call frequently — minimal API impact."
+    }
+  ],
+  "flavor_text": "Look at the trails. Don't add to them.",
+  "install_via": "https://raw.githubusercontent.com/kody-w/ant-farm/main/agents/colony_observer_agent.py",
+  "rar_index": "https://raw.githubusercontent.com/kody-w/ant-farm/main/rar/index.json"
+}

@@ -1,0 +1,7 @@
+{
+  "moment_id": "01-code-commit",
+  "source_type": "code-commit",
+  "expected_significance": "high",
+  "expected_channel_hint": "r/builders or r/lessons",
+  "source": "commit aea1f30 — Twin Stack v1.6: RAPPstore + bookfactoryagent shipped as the first rapplication\n\nFiles changed:\n  store/index.json (NEW, 4.2KB) — catalog with 2 rapplication entries\n  store/index.html (NEW, 8.9KB) — public catalog browser\n  store/eggs/bookfactoryagent-demo.egg (NEW, 58KB)\n  agents/bookfactory_agent.py (NEW, 543 lines, 24,779 bytes) — converged singleton from 13 source files\n  metrics/double-jump.json (NEW) — backfilled cycles 1+2+3 with win-rate, code-survival, scaffolding-leak, soul-byte counts\n  tests/test-rapplication-store.sh (NEW, 5/5 passing)\n\nKey lesson: brainstem hot-load glob is *_agent.py — file MUST have underscore before agent. Cost us 30 minutes when bookfactoryagent.py loaded 0 agents."
+}

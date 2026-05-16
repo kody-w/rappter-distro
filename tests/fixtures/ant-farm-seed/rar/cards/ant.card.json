@@ -1,0 +1,29 @@
+{
+  "schema": "rapp-card/1.0",
+  "for_agent": "Ant",
+  "title": "🐜 Ant — drop one pheromone per tick",
+  "type_line": "Agent — Ant Farm Worker",
+  "rarity": "common",
+  "emits": "rapp-pheromone/1.0",
+  "abilities": [
+    {
+      "kw": "Forage",
+      "text": "Read existing pheromones (Issues labeled ant-pheromone), find the least-explored topic, drop one new pheromone."
+    },
+    {
+      "kw": "Chain",
+      "text": "Each pheromone's prev_hash links to the most-recent existing pheromone. Tampering breaks the chain."
+    },
+    {
+      "kw": "Cross-link",
+      "text": "Each new pheromone references prior pheromones via links_to — cross-pollination is the work."
+    },
+    {
+      "kw": "Dry-run",
+      "text": "Default safety — returns the pheromone JSON without posting. Pass dry_run=False + a github_token to actually post."
+    }
+  ],
+  "flavor_text": "One ant drops one pheromone. The colony reads them all.",
+  "install_via": "https://raw.githubusercontent.com/kody-w/ant-farm/main/agents/ant_agent.py",
+  "rar_index": "https://raw.githubusercontent.com/kody-w/ant-farm/main/rar/index.json"
+}

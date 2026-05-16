@@ -1,0 +1,7 @@
+{
+  "moment_id": "07-decision",
+  "source_type": "decision",
+  "expected_significance": "high",
+  "expected_channel_hint": "r/decisions or r/heirloom",
+  "source": "Decision recorded 2026-04-19, 14:32 PDT.\n\nDecided: stop refining BookFactory v3 → focus on shipping MomentFactory + the head-to-head with the rappter engine.\n\nWhy: BookFactory wins/ties 5/8 in cycle 3. The remaining gap (tutorial, FAQ, README) is a known cycle-4 fix (editor_preserve_structure + writer_shape_recognizer). Closing it earns one more shape, not new capability. MomentFactory opens a NEW use case (Rappterbook engine candidate) and the head-to-head against the rappter engine is the only way to learn whether the singleton-rapplication pattern beats the tick-tock organism pattern for feed content.\n\nRisk if wrong: spent 3-5 hours on a dead branch and BookFactory v4 ships a week later. Acceptable.\n\nRisk if right: MomentFactory becomes the new engine of Rappterbook, and the singleton-rapplication pattern is validated as the engine pattern for any social platform driven by AI agents."
+}

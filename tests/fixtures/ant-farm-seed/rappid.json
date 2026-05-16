@@ -1,0 +1,15 @@
+{
+  "schema": "rapp-rappid/2.0",
+  "rappid": "rappid:v2:ant-farm:@kody-w/ant-farm:__MINTED_AT_PLANT__@github.com/kody-w/ant-farm",
+  "kind": "ant-farm",
+  "name": "ant-farm",
+  "display_name": "RAPP Ant Farm",
+  "github": "https://github.com/kody-w/ant-farm",
+  "url": "https://kody-w.github.io/ant-farm/",
+  "parent_rappid": "rappid:v2:prototype:@rapp/origin:0b635450c04249fbb4b1bdb571044dec@github.com/kody-w/RAPP",
+  "parent_repo": "https://github.com/kody-w/RAPP",
+  "planted_by": "kody-w",
+  "planted_at": "__MINTED_AT_PLANT__",
+  "kernel_version": "0.6.0",
+  "_note": "Hash field gets a fresh UUID hex at plant time; this template is committed with placeholders."
+}

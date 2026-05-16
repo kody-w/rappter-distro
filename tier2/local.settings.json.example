@@ -1,0 +1,22 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "BRAINSTEM_HOME": "/tmp/.rapp-swarm",
+
+    "AZURE_OPENAI_ENDPOINT": "https://rappter.openai.azure.com/openai/v1/chat/completions",
+    "AZURE_OPENAI_API_VERSION": "2025-01-01-preview",
+    "AZURE_OPENAI_DEPLOYMENT": "gpt-5.4",
+    "AZURE_OPENAI_API_KEY": "<paste from root .env>",
+
+    "OPENAI_API_KEY": "",
+    "ANTHROPIC_API_KEY": "",
+
+    "DEFAULT_SWARM_GUID": ""
+  },
+  "Host": {
+    "CORS": "*",
+    "CORSCredentials": false
+  }
+}

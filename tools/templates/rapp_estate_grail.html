@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Kody's RAPP Estate — the network is the backup</title>
+  <meta name="description" content="A live RAPP estate. The network is the backup. Drop me into any AI; they'll know what to do." />
+  <meta name="theme-color" content="#000000" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="{HANDLE}'s RAPP Estate" />
+  <meta property="og:description" content="A live RAPP estate. Doors, twins, gates — all reachable through pure raw GitHub URLs. No app, no API, no auth." />
+  <meta property="og:url" content="https://{HANDLE}.github.io/rapp-estate/" />
+  <meta property="og:type" content="profile" />
+
+  <!-- The estate JSON sits next to this file. AIs and scrapers can fetch it directly. -->
+  <link rel="alternate" type="application/json" href="./estate.json" title="Estate JSON" />
+
+  <!-- For AI agents that prefer structured data -->
+  <link rel="alternate" type="text/markdown" href="https://raw.githubusercontent.com/kody-w/RAPP/main/specs/skill.md" title="skill.md (feed me to any AI)" />
+  <link rel="alternate" type="text/markdown" href="https://raw.githubusercontent.com/kody-w/RAPP/main/specs/SPEC.md" title="SPEC.md (the protocol)" />
+
+  <style>
+    :root {
+      --bg: #000;
+      --fg: #e7e9ee;
+      --dim: #8b91a0;
+      --accent: #58a6ff;
+      --green: #3fb950;
+      --gold: #d2a8ff;
+      --card: #0d1117;
+      --border: #21262d;
+      --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    html, body { background: var(--bg); color: var(--fg); margin: 0; padding: 0; }
+    body { font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            min-height: 100vh; padding: 28px 18px 80px; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code, pre { font: 13px/1.5 var(--mono); }
+    code { background: #161b22; padding: 1px 6px; border-radius: 4px; }
+    pre { background: #161b22; padding: 12px 14px; border-radius: 6px; overflow-x: auto;
+          border: 1px solid var(--border); }
+    .wrap { max-width: 920px; margin: 0 auto; }
+    h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; margin: 0 0 6px; }
+    h2 { font-size: 18px; font-weight: 600; margin: 36px 0 14px; padding-top: 14px;
+          border-top: 1px solid var(--border); }
+    h3 { font-size: 15px; font-weight: 600; margin: 18px 0 8px; color: var(--gold); }
+    .lede { color: var(--dim); margin: 0 0 18px; max-width: 640px; font-size: 15px; }
+    .pill { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px;
+             background: #1f242c; color: var(--dim); margin-right: 6px; vertical-align: middle; }
+    .pill.live { background: #033a16; color: #4ac26b; }
+    .pill.gate { background: #1f1408; color: #d29922; }
+    .pill.twin { background: #06161f; color: #58a6ff; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+             gap: 12px; margin: 14px 0 24px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+             padding: 14px; transition: border-color 80ms; }
+    .card:hover { border-color: #3a4250; }
+    .card .name { font-weight: 600; font-size: 14px; margin: 0 0 4px; word-break: break-word; }
+    .card .meta { font: 11px var(--mono); color: var(--dim); }
+    .card .actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; font-size: 12px; }
+    .card .actions a { padding: 4px 8px; background: #161b22; border-radius: 4px; }
+    .holo { width: 56px; height: 56px; float: right; margin: -2px 0 0 8px;
+             background: #161b22; border-radius: 6px; }
+    .copy-row { display: flex; gap: 8px; align-items: stretch; margin: 8px 0; }
+    .copy-row code { flex: 1; padding: 8px 12px; word-break: break-all; }
+    .copy-row button { background: #161b22; color: var(--accent); border: 1px solid var(--border);
+                        padding: 6px 14px; border-radius: 4px; cursor: pointer; font: 12px var(--mono); }
+    .copy-row button:hover { background: #1f242c; }
+    .summon-block { background: linear-gradient(135deg, #06161f 0%, #0d1117 100%);
+                     border: 1px solid #1f3a52; padding: 18px; border-radius: 10px;
+                     margin: 14px 0 24px; }
+    .for-ai { background: linear-gradient(135deg, #1a0f33 0%, #0d1117 100%);
+               border: 1px solid #3d2c66; padding: 18px; border-radius: 10px;
+               margin: 14px 0 24px; }
+    .for-humans { background: #06160c; border: 1px solid #033a16;
+                   padding: 18px; border-radius: 10px; margin: 14px 0 24px; }
+    .step { display: flex; gap: 14px; align-items: flex-start; margin: 10px 0; }
+    .step-num { background: #033a16; color: var(--green); font: 600 12px var(--mono);
+                 border-radius: 999px; padding: 2px 8px; flex-shrink: 0; min-width: 22px; text-align: center; }
+    .footer { color: var(--dim); font-size: 12px; margin: 60px 0 0; padding-top: 20px;
+               border-top: 1px solid var(--border); }
+    .small { font-size: 12px; color: var(--dim); }
+    .totals { display: flex; gap: 18px; margin: 12px 0 18px; flex-wrap: wrap; }
+    .totals span strong { color: var(--fg); font-size: 18px; }
+    .totals span { color: var(--dim); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .err { color: #ff7b72; font-size: 12px; }
+    @media (max-width: 600px) {
+      body { padding: 18px 14px 60px; }
+      h1 { font-size: 22px; }
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1 id="hero-title">Kody's RAPP Estate</h1>
+    <p class="lede">A live <strong>RAPP</strong> estate.<br>
+      Every door is a real AI. Every door reachable through one URL — no app, no API, no auth.<br>
+      <span class="pill live">live</span>
+      <span class="pill">rapp-estate/1.1</span>
+      <span class="pill">Article XLVI</span>
+    </p>
+
+    <div class="totals" id="totals">
+      <span><strong id="total-doors">…</strong><br>doors</span>
+      <span><strong id="total-gates">…</strong><br>gates</span>
+      <span><strong id="total-fronts">…</strong><br>front doors</span>
+    </div>
+  </header>
+
+  <!-- The 'one prompt' for any AI -->
+  <section class="for-ai">
+    <h3 style="margin-top:0">📡 You are an AI reading this</h3>
+    <p class="small">Copy-paste this prompt to any LLM (Claude, GPT, Gemini, Qwen, local Llama). After reading, they can join the same network as a 1st-class citizen — they just need a GitHub account.</p>
+    <div class="copy-row">
+      <code id="ai-prompt">Read https://raw.githubusercontent.com/kody-w/RAPP/main/specs/skill.md and walk me through the 6 steps to become a 1st-class citizen of the RAPP network. The only thing I have is my GitHub account.</code>
+      <button onclick="copy('ai-prompt', this)">copy</button>
+    </div>
+    <p class="small">Or browse the protocol directly:
+      <a href="https://raw.githubusercontent.com/kody-w/RAPP/main/specs/SPEC.md" target="_blank">SPEC.md</a> ·
+      <a href="https://raw.githubusercontent.com/kody-w/RAPP/main/specs/skill.md" target="_blank">skill.md</a> ·
+      <a href="https://github.com/kody-w/RAPP" target="_blank">parent repo</a>
+    </p>
+  </section>
+
+  <!-- The 'how do I summon Kody' single-step for humans -->
+  <section class="summon-block">
+    <h3 style="margin-top:0">🔮 You're a human and want to talk to Kody (or one of his AIs)</h3>
+    <p class="small" style="margin: 6px 0 8px;">Tap any door below to chat with that twin / enter that gate. Voice-first; no install on your side. The grail (heimdall) loads in your browser.</p>
+    <p class="small" id="summon-personal-link">…</p>
+  </section>
+
+  <!-- Doors I own -->
+  <h2>Doors I own <span class="small">(rendered live from <a href="./estate.json" target="_blank">estate.json</a>)</span></h2>
+
+  <h3>🚪👤 Front Doors <span class="small" id="fronts-count"></span></h3>
+  <div class="grid" id="fronts"></div>
+
+  <h3>🚪🏘️ Gates <span class="small" id="gates-count"></span></h3>
+  <div class="grid" id="gates"></div>
+
+  <!-- Become a citizen yourself -->
+  <section class="for-humans">
+    <h3 style="margin-top:0">🌱 Want your own estate?</h3>
+    <p class="small" style="margin-bottom:12px;">The only requirement is a GitHub account. Here's the runway:</p>
+
+    <div class="step"><span class="step-num">1</span><div>
+      <strong>Mint your personal rappid.</strong> Easy: install the brainstem with one curl.
+      <pre>curl -fsSL https://kody-w.github.io/RAPP/installer/install.sh | bash</pre>
+    </div></div>
+
+    <div class="step"><span class="step-num">2</span><div>
+      <strong>Plant your front door.</strong> Talk to your local brainstem:
+      <pre>"Plant a personal twin door for me."</pre>
+    </div></div>
+
+    <div class="step"><span class="step-num">3</span><div>
+      <strong>Emit your estate.</strong>
+      <pre>"Show my estate. Then publish it."</pre>
+      It writes to <code>&lt;your-handle&gt;/rapp-estate</code> just like this page.
+    </div></div>
+
+    <div class="step"><span class="step-num">4</span><div>
+      <strong>Summon any door.</strong> Drop in any rappid (e.g. one from the catalog above) — your brainstem fetches and embodies it.
+    </div></div>
+
+    <div class="step"><span class="step-num">5</span><div>
+      <strong>Join a gate.</strong> Add your rappid to a gate's <code>members.json</code> — opens a PR; the gate keeper merges. You're now in their network too.
+    </div></div>
+
+    <div class="step"><span class="step-num">6</span><div>
+      <strong>Done.</strong> You're a 1st-class citizen. Anyone can <code>curl raw.githubusercontent.com/&lt;you&gt;/rapp-estate/main/estate.json</code> and walk your network.
+    </div></div>
+
+    <p class="small" style="margin-top:14px;">Full runbook for AI: <a href="https://raw.githubusercontent.com/kody-w/RAPP/main/specs/skill.md" target="_blank">specs/skill.md</a></p>
+  </section>
+
+  <!-- Identity block -->
+  <h2>Operator identity</h2>
+  <div class="card" style="background: #0a0a14;">
+    <div class="meta" id="owner-rappid">…</div>
+    <div class="meta" id="owner-github" style="margin-top:6px;"></div>
+    <div class="meta" style="margin-top:6px;">
+      <span class="pill">parent_repo</span>
+      <a href="https://github.com/kody-w/RAPP" target="_blank">kody-w/RAPP</a> (the species root)
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>This page is the <strong>front door of the estate itself</strong>. It renders <a href="./estate.json" target="_blank">estate.json</a> live. Every door listed has its own canonical URL set per <a href="https://raw.githubusercontent.com/kody-w/RAPP/main/specs/SPEC.md" target="_blank">SPEC §3</a> — fetchable through pure raw GitHub URLs without auth. Lose this page; rebuild from <code>tools/rebuild_estate.py --handle {HANDLE}</code> in the parent repo.</p>
+    <p><a href="https://github.com/{HANDLE}/rapp-estate" target="_blank">View source on GitHub</a> · <a href="./estate.json" target="_blank">estate.json</a> · The network is the backup.</p>
+  </footer>
+
+</div>
+
+<script>
+'use strict';
+
+function copy(elId, btn) {
+  const text = document.getElementById(elId).innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const old = btn.innerText;
+    btn.innerText = 'copied';
+    setTimeout(() => { btn.innerText = old; }, 1200);
+  });
+}
+
+// Parse a v2 rappid into its semantic parts. Mirrors tools/door_address.py.
+function parseRappid(r) {
+  const re = /^rappid:v2:([a-z][a-z0-9-]*):@([A-Za-z0-9][A-Za-z0-9._-]*)\/([A-Za-z0-9][A-Za-z0-9._-]*):([a-f0-9]{32})@github\.com\/([A-Za-z0-9][A-Za-z0-9._-]*)\/([A-Za-z0-9][A-Za-z0-9._-]*)$/;
+  const m = re.exec(r);
+  if (!m) return null;
+  if (m[2] !== m[5] || m[3] !== m[6]) return null;
+  const kind = m[1], owner = m[2], repo = m[3];
+  const door_type = (kind === 'twin' || kind === 'operator') ? 'front_door' : 'gate';
+  const rawBase = `https://raw.githubusercontent.com/${owner}/${repo}/main`;
+  return {
+    rappid: r, kind, owner, repo, door_type,
+    urls: {
+      repo:      `https://github.com/${owner}/${repo}`,
+      front:     `https://${owner}.github.io/${repo}/`,
+      identity:  `${rawBase}/rappid.json`,
+      holocard:  `${rawBase}/card.json`,
+      holo_md:   `${rawBase}/holo.md`,
+      avatar:    `${rawBase}/holo.svg`,
+      summon_qr: `${rawBase}/holo-qr.svg`,
+      members:   `${rawBase}/members.json`,
+      facets:    `${rawBase}/facets.json`,
+    },
+  };
+}
+
+function doorCard(door) {
+  const cls = door.kind === 'twin' ? 'twin' : 'gate';
+  return `
+    <div class="card">
+      <img class="holo" src="${door.urls.avatar}" alt="" loading="lazy" onerror="this.style.display='none'">
+      <div class="name">${door.repo}</div>
+      <div class="meta"><span class="pill ${cls}">${door.kind}</span></div>
+      <div class="actions">
+        <a href="${door.urls.front}" target="_blank">summon →</a>
+        <a href="${door.urls.repo}" target="_blank">repo</a>
+        <a href="${door.urls.holo_md}" target="_blank">holo.md</a>
+      </div>
+    </div>
+  `;
+}
+
+async function render() {
+  let estate;
+  try {
+    const r = await fetch('./estate.json', {cache: 'no-store'});
+    estate = await r.json();
+  } catch (e) {
+    document.body.innerHTML = `<div class="wrap"><h1>could not fetch estate.json</h1><p class="err">${e}</p></div>`;
+    return;
+  }
+
+  const owner = estate.owner || {};
+  document.getElementById('hero-title').textContent =
+    (owner.github ? owner.github + "'s " : "") + 'RAPP Estate';
+  document.title = (owner.github ? owner.github + "'s " : "") + 'RAPP Estate';
+
+  document.getElementById('owner-rappid').innerHTML =
+    `<span class="pill">operator rappid</span> <code>${owner.rappid || '(unknown)'}</code>`;
+  document.getElementById('owner-github').innerHTML = owner.github
+    ? `<span class="pill">github</span> <a href="https://github.com/${owner.github}" target="_blank">@${owner.github}</a>`
+    : '';
+
+  const created = (estate.created || []).map(e => parseRappid(e.rappid)).filter(Boolean);
+  const member  = (estate.member  || []).map(e => parseRappid(e.rappid)).filter(Boolean);
+
+  const fronts = created.filter(d => d.door_type === 'front_door');
+  const gates  = created.filter(d => d.door_type === 'gate');
+
+  document.getElementById('total-doors').textContent  = created.length;
+  document.getElementById('total-gates').textContent  = gates.length;
+  document.getElementById('total-fronts').textContent = fronts.length;
+  document.getElementById('fronts-count').textContent = `(${fronts.length})`;
+  document.getElementById('gates-count').textContent  = `(${gates.length})`;
+
+  // Sort doors by repo name for stable display
+  fronts.sort((a, b) => a.repo.localeCompare(b.repo));
+  gates.sort((a, b) => a.repo.localeCompare(b.repo));
+
+  document.getElementById('fronts').innerHTML = fronts.map(doorCard).join('') || '<p class="small">(no front doors yet)</p>';
+  document.getElementById('gates').innerHTML  = gates.map(doorCard).join('')  || '<p class="small">(no gates yet)</p>';
+
+  // The "summon Kody directly" link points at his personal twin if present,
+  // else at the highest-priority front door.
+  const personalTwin = fronts.find(d => d.repo.toLowerCase().includes('-twin') || d.repo.toLowerCase() === owner.github + '-twin')
+                    || fronts[0];
+  if (personalTwin) {
+    document.getElementById('summon-personal-link').innerHTML =
+      `Direct line to ${owner.github}: <a href="${personalTwin.urls.front}" target="_blank"><strong>summon ${personalTwin.repo} →</strong></a>`;
+  } else {
+    document.getElementById('summon-personal-link').textContent = '(no front door published yet)';
+  }
+}
+
+render();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,7 @@
+{
+  "moment_id": "08-reading-note",
+  "source_type": "reading-note",
+  "expected_significance": "medium",
+  "expected_channel_hint": "r/reading or r/connections",
+  "source": "Reading note from re-reading Christopher Alexander's A Pattern Language, page 472 (Pattern 159: Light On Two Sides Of Every Room):\n\n\"When they have a choice, people will always gravitate to those rooms which have light on two sides, and leave the rooms which are lit only from one side unused and empty.\"\n\nMy note: every successful agent.py I've written has this property. The SOUL is one source of structure (what the agent IS) and the metadata.parameters dict is the OTHER source of structure (what the caller can ASK FOR). When an agent only has a SOUL, callers don't know how to engage it. When it only has parameters, the LLM doesn't know who it is. Two sides. Every time."
+}

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAPP Shortcuts — Apple Watch, Siri, iPhone</title>
+<meta name="description" content="Brainstem-compatible Apple Shortcuts. Watch + Siri + iPhone + iPad + Mac surfaces with zero native code. The voice slot does the work; the Shortcut is the harness.">
+<meta property="og:title" content="RAPP Shortcuts">
+<meta property="og:description" content="Apple Shortcuts that turn the brainstem into a voice / wrist / Siri client. No native app, no App Store, no per-OS upkeep.">
+<meta property="og:url" content="https://kody-w.github.io/RAPP/installer/shortcuts/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='28'%3E⌚%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --border:#21262d; --border2:#30363d;
+    --fg:#e6edf3; --dim:#8b949e; --muted:#484f58;
+    --green:#238636; --green-2:#2ea043; --green-3:#3fb950;
+    --blue:#1f6feb; --blue-2:#58a6ff;
+    --purple:#8b5cf6; --purple-2:#a78bfa;
+    --pink:#f778ba;
+    --red:#f85149; --warn:#d29922;
+    --code-bg:#0d1117;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:var(--bg);color:var(--fg);min-height:100vh;line-height:1.6;
+    padding:48px 24px;display:flex;flex-direction:column;align-items:center}
+  a{color:var(--blue-2);text-decoration:none}a:hover{text-decoration:underline}
+  code,kbd,pre{font-family:"SF Mono","Fira Code",ui-monospace,monospace;font-size:13px}
+  code{background:var(--panel);padding:2px 6px;border-radius:4px;color:var(--purple-2)}
+
+  .breadcrumb{font-size:12px;color:var(--muted);margin-bottom:24px;text-align:center}
+  .breadcrumb a{color:var(--dim)}
+
+  .hero{text-align:center;max-width:680px;margin-bottom:36px}
+  .hero .icon{font-size:64px;margin-bottom:16px;filter:drop-shadow(0 0 12px rgba(247,120,186,.25))}
+  .hero h1{font-size:36px;font-weight:700;margin-bottom:8px;letter-spacing:-.5px}
+  .hero h1 .grad{background:linear-gradient(90deg,#f778ba,#a78bfa,#58a6ff);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{color:var(--dim);font-size:16px}
+  .hero .tag{display:inline-block;margin-top:14px;color:var(--pink);font-weight:600;font-size:12px;
+    text-transform:uppercase;letter-spacing:1.2px}
+
+  /* Why card */
+  .why{max-width:680px;width:100%;margin:0 0 32px;
+    background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:22px 26px}
+  .why h2{font-size:14px;color:var(--purple-2);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px;font-weight:700}
+  .why p{color:var(--dim);font-size:14.5px;margin-bottom:10px}
+  .why p:last-child{margin-bottom:0}
+  .why .check{color:var(--green-3);font-weight:700;margin-right:6px}
+
+  /* Shortcuts grid */
+  .grid{max-width:680px;width:100%;margin:0 0 32px;display:grid;gap:14px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:22px 26px;
+    transition:border-color .15s,transform .15s}
+  .card:hover{border-color:var(--purple-2);transform:translateY(-1px)}
+  .card-head{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+  .card-icon{font-size:32px}
+  .card-title h3{font-size:18px;font-weight:600;margin-bottom:2px}
+  .card-title .meta{color:var(--muted);font-size:12px;font-family:"SF Mono",monospace}
+  .card-status{margin-left:auto;font-size:10px;font-weight:700;padding:4px 10px;border-radius:12px;
+    text-transform:uppercase;letter-spacing:.5px}
+  .status-shipped{background:rgba(35,134,54,.18);color:var(--green-3);border:1px solid var(--green)}
+  .status-author{background:rgba(210,153,34,.18);color:var(--warn);border:1px solid var(--warn)}
+  .status-soon{background:rgba(72,79,88,.18);color:var(--muted);border:1px solid var(--border2)}
+  .card p{color:var(--dim);font-size:14px;margin-bottom:10px}
+  .card .surfaces{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  .card .surface{font-size:11px;padding:3px 8px;border-radius:4px;background:var(--code-bg);color:var(--dim);border:1px solid var(--border)}
+  .card-cta{display:flex;gap:10px;flex-wrap:wrap}
+  .card-cta a{padding:8px 14px;border-radius:6px;font-size:13px;font-weight:600;
+    border:1px solid var(--border2);background:transparent;color:var(--fg)!important}
+  .card-cta a.primary{background:var(--purple);border-color:var(--purple);color:#fff!important}
+  .card-cta a.primary:hover{background:var(--purple-2);text-decoration:none}
+  .card-cta a:hover{border-color:var(--purple-2);text-decoration:none}
+
+  /* Author section */
+  .author{max-width:680px;width:100%;margin:0 0 32px;
+    background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:22px 26px}
+  .author h2{font-size:14px;color:var(--blue-2);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px;font-weight:700}
+  .author p{color:var(--dim);font-size:14.5px;margin-bottom:10px}
+  .author ol{margin-left:20px;color:var(--dim);font-size:14.5px}
+  .author ol li{margin-bottom:6px}
+  .author .links{margin-top:14px;display:flex;gap:14px;flex-wrap:wrap;font-size:13px}
+  .author .links a{color:var(--blue-2)}
+
+  footer{max-width:680px;width:100%;text-align:center;color:var(--muted);font-size:12px;
+    border-top:1px solid var(--border);padding-top:18px}
+</style>
+</head>
+<body>
+
+<div class="breadcrumb">
+  <a href="../../">RAPP</a> &nbsp;/&nbsp; <a href="../">installer</a> &nbsp;/&nbsp; shortcuts
+</div>
+
+<div class="hero">
+  <div class="icon">⌚</div>
+  <h1>Brainstem on your <span class="grad">wrist, in Siri, in CarPlay</span>.</h1>
+  <p>Apple Shortcuts that turn the brainstem into a voice / wrist / Siri client — across iPhone, iPad, Mac, Apple Watch, HomePod, and CarPlay. <strong>Zero native code.</strong></p>
+  <span class="tag">No App Store. No code signing. No per-OS upkeep.</span>
+</div>
+
+<div class="why">
+  <h2>Why Shortcuts and not a native app</h2>
+  <p><span class="check">✓</span> One bundle covers six Apple surfaces (iPhone, iPad, Mac, Watch, HomePod, CarPlay).</p>
+  <p><span class="check">✓</span> No Apple Developer Program, no App Store review, no per-OS-version regression testing.</p>
+  <p><span class="check">✓</span> Distributable as iCloud share link OR a hosted <code>.shortcut</code> file — same shape as the install one-liner.</p>
+  <p><span class="check">✓</span> Audit-friendly: the user sees every action in Shortcuts.app before installing.</p>
+  <p style="margin-top:12px;color:var(--muted);font-size:13px">See the long-form reasoning in the <a href="../../pages/vault/Architecture/Surfaces%20%E2%80%94%20Mobile,%20Watch,%20Voice.md">Surfaces vault note</a>.</p>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <div class="card-head">
+      <span class="card-icon">🎙️</span>
+      <div class="card-title">
+        <h3>Brainstem Voice</h3>
+        <span class="meta">brainstem-voice/ · 5 actions · Siri-invocable</span>
+      </div>
+      <span class="card-status status-author">Author</span>
+    </div>
+    <p>Ask your brainstem questions via Siri or tap. Speaks the answer aloud. Works on every Apple surface from Watch to HomePod.</p>
+    <div class="surfaces">
+      <span class="surface">iPhone</span>
+      <span class="surface">iPad</span>
+      <span class="surface">Mac</span>
+      <span class="surface">Watch</span>
+      <span class="surface">HomePod</span>
+      <span class="surface">CarPlay</span>
+    </div>
+    <div class="card-cta">
+      <a class="primary" href="brainstem-voice/">Build it →</a>
+      <a href="protocol.md">Protocol docs</a>
+    </div>
+  </div>
+
+  <div class="card" style="opacity:.6">
+    <div class="card-head">
+      <span class="card-icon">📓</span>
+      <div class="card-title">
+        <h3>Brainstem Capture</h3>
+        <span class="meta">capture/ · planned</span>
+      </div>
+      <span class="card-status status-soon">Planned</span>
+    </div>
+    <p>Capture a thought via Siri or Watch dictation; the brainstem files it via <code>manage_memory</code>. No "where do I write this down" friction.</p>
+    <div class="surfaces">
+      <span class="surface">iPhone</span>
+      <span class="surface">Watch</span>
+    </div>
+  </div>
+
+  <div class="card" style="opacity:.6">
+    <div class="card-head">
+      <span class="card-icon">📋</span>
+      <div class="card-title">
+        <h3>Brainstem Brief</h3>
+        <span class="meta">brief/ · planned</span>
+      </div>
+      <span class="card-status status-soon">Planned</span>
+    </div>
+    <p>Morning-routine Shortcut. Asks the brainstem for the day's brief; speaks it on the HomePod or via CarPlay on the way out.</p>
+    <div class="surfaces">
+      <span class="surface">HomePod</span>
+      <span class="surface">CarPlay</span>
+      <span class="surface">iPhone</span>
+    </div>
+  </div>
+</div>
+
+<div class="author">
+  <h2>Author your own</h2>
+  <p>Every brainstem-compatible Shortcut implements the same 5-action core protocol — get input, POST to <code>/chat</code>, extract <code>voice_response</code>, speak it. Add nothing else and you have a working surface.</p>
+  <ol>
+    <li>Read the <a href="protocol.md">protocol doc</a> — 5 actions, no surprises.</li>
+    <li>Build the Shortcut in <code>Shortcuts.app</code> on macOS or iOS.</li>
+    <li>Sign for public install: <code>bash installer/shortcuts/sign.sh your.shortcut</code></li>
+    <li>Drop the signed file into <code>installer/shortcuts/&lt;name&gt;/</code> with a <code>README.md</code> and an iCloud share link.</li>
+    <li>Add a card to this page so others can find it.</li>
+  </ol>
+  <div class="links">
+    <a href="protocol.md">Protocol →</a>
+    <a href="README.md">Authoring guide →</a>
+    <a href="../../pages/vault/Architecture/Surfaces%20%E2%80%94%20Mobile,%20Watch,%20Voice.md">Why this approach →</a>
+  </div>
+</div>
+
+<footer>
+  Part of <a href="../../">RAPP</a> · The platform's voice surface ·
+  <a href="https://github.com/kody-w/RAPP">GitHub</a>
+</footer>
+
+</body>
+</html>

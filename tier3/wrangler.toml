@@ -1,0 +1,22 @@
+# wrangler.toml — Cloudflare Worker config for the RAPP auth/proxy worker.
+#
+# Deploy:
+#   cd worker
+#   npx wrangler login                              # one-time
+#   npx wrangler secret put GH_CLIENT_ID            # paste the OAuth App client id
+#   npx wrangler secret put GH_CLIENT_SECRET        # paste the OAuth App client secret
+#   npx wrangler deploy
+#
+# After deploy, copy the printed URL (e.g. https://rapp-auth.<your>.workers.dev)
+# into brainstem/index.html → AUTH_WORKER_URL.
+
+name = "rapp-auth"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+# Optional: pin a custom route. Otherwise Cloudflare hosts it at
+#   https://rapp-auth.<your-subdomain>.workers.dev
+# routes = [{ pattern = "rapp-auth.example.com/*", zone_name = "example.com" }]
+
+[observability]
+enabled = true

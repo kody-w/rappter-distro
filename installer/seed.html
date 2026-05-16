@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0d1117">
+<title>Seed a place — RAPP</title>
+<meta name="description" content="Submit a real-world public location to be planted as a place-brainstem POI on the RAPP network.">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { min-height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #0d1117;
+    color: #e6edf3;
+    -webkit-text-size-adjust: 100%;
+    line-height: 1.5;
+  }
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 24px;
+    padding-top: max(24px, env(safe-area-inset-top, 24px));
+    padding-bottom: max(48px, env(safe-area-inset-bottom, 48px));
+  }
+  header { text-align: center; margin-bottom: 24px; }
+  .seed-icon { font-size: 44px; margin-bottom: 8px; }
+  h1 {
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+  .tagline { color: #8b949e; font-size: 14px; }
+
+  section.pane {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  section.pane h2 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .step-num {
+    width: 22px; height: 22px;
+    background: #1f6feb;
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 22px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  section.pane .desc {
+    color: #8b949e;
+    font-size: 13px;
+    margin-bottom: 14px;
+  }
+
+  label {
+    display: block;
+    font-size: 12px;
+    color: #8b949e;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 12px 0 6px;
+  }
+  input[type="text"], input[type="url"], textarea {
+    width: 100%;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    padding: 11px 13px;
+    color: #e6edf3;
+    font-size: 14px;
+    font-family: inherit;
+  }
+  input:focus, textarea:focus { outline: none; border-color: #1f6feb; }
+  textarea { min-height: 80px; resize: vertical; }
+  .hint { font-size: 11px; color: #6e7681; margin-top: 4px; }
+
+  button {
+    background: #1f6feb;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    -webkit-appearance: none;
+    font-family: inherit;
+  }
+  button:hover { background: #2477f3; }
+  button.secondary {
+    background: #21262d;
+    color: #c9d1d9;
+    border: 1px solid #30363d;
+  }
+  button.secondary:hover { background: #2d333b; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+
+  .geo-status {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #0d1117;
+    border: 1px solid #21262d;
+    font-size: 12px;
+    color: #8b949e;
+    font-family: "SF Mono", Menlo, monospace;
+  }
+  .geo-status.ok    { border-color: #3fb950; color: #3fb950; }
+  .geo-status.err   { border-color: #f85149; color: #f85149; }
+
+  .check-list {
+    margin-top: 8px;
+  }
+  .check-list label.check {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    font-size: 13px;
+    color: #c9d1d9;
+    text-transform: none;
+    letter-spacing: normal;
+    cursor: pointer;
+    margin: 0;
+    border-top: 1px solid #21262d;
+  }
+  .check-list label.check:first-child { border-top: none; }
+  .check-list input[type="checkbox"] {
+    margin-top: 3px;
+    width: 16px;
+    height: 16px;
+    accent-color: #1f6feb;
+    flex-shrink: 0;
+    -webkit-appearance: auto;
+    appearance: auto;
+  }
+  .check-list .reject { color: #f85149; font-weight: 500; }
+
+  .submit-pane {
+    background: linear-gradient(135deg, #1f6feb 0%, #2477f3 100%);
+    border-radius: 14px;
+    padding: 24px;
+    text-align: center;
+    margin-top: 16px;
+  }
+  .submit-pane h2 { color: white; font-size: 18px; margin-bottom: 8px; }
+  .submit-pane p { color: rgba(255,255,255,0.85); font-size: 13px; margin-bottom: 16px; }
+  .submit-pane button.primary-cta {
+    background: white;
+    color: #1f6feb;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 14px 28px;
+    width: 100%;
+  }
+  .submit-pane button.primary-cta:hover { background: #f6f8fa; }
+  .submit-pane button.primary-cta:disabled {
+    background: rgba(255,255,255,0.4);
+    color: rgba(31,111,235,0.6);
+  }
+  .submit-hint {
+    color: rgba(255,255,255,0.7);
+    font-size: 11px;
+    margin-top: 10px;
+  }
+
+  footer {
+    text-align: center;
+    margin-top: 24px;
+    color: #6e7681;
+    font-size: 12px;
+  }
+  footer a { color: #58a6ff; text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  .rules-box {
+    background: #161b22;
+    border: 1px dashed #30363d;
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 12px;
+    color: #8b949e;
+    line-height: 1.6;
+    margin-top: 10px;
+  }
+  .rules-box strong { color: #c9d1d9; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="seed-icon">🌱</div>
+    <h1>Seed a public place</h1>
+    <div class="tagline">Nominate a real-world POI to be planted on the RAPP network.</div>
+  </header>
+
+  <!-- Step 1: Location -->
+  <section class="pane">
+    <h2><span class="step-num">1</span> Where are you?</h2>
+    <div class="desc">Capture coordinates from your device, or enter manually. Used for the network's public map.</div>
+
+    <div class="btn-row">
+      <button id="btn-locate">📍 Use my location</button>
+      <button class="secondary" id="btn-manual">Enter manually</button>
+    </div>
+
+    <div class="geo-status" id="geo-status">No location captured yet.</div>
+
+    <div id="manual-coords" hidden>
+      <label for="lat">Latitude</label>
+      <input type="text" id="lat" placeholder="47.6097" inputmode="decimal">
+      <label for="lng">Longitude</label>
+      <input type="text" id="lng" placeholder="-122.3422" inputmode="decimal">
+    </div>
+  </section>
+
+  <!-- Step 2: Place metadata -->
+  <section class="pane">
+    <h2><span class="step-num">2</span> What's there?</h2>
+    <div class="desc">The basic facts about this place.</div>
+
+    <label for="place_name">Place name</label>
+    <input type="text" id="place_name" placeholder="e.g., Pike Place Market">
+
+    <label for="display_name">Display name (what visitors see)</label>
+    <input type="text" id="display_name" placeholder="e.g., Cloud Gate (The Bean)">
+    <div class="hint">If different from the place name. Otherwise auto-fills from above.</div>
+
+    <label for="slug">Slug (URL-safe)</label>
+    <input type="text" id="slug" placeholder="pkstop-pike-place-market">
+    <div class="hint">Lowercase + hyphens. Auto-generates from place name. Convention: prefix <code>pkstop-</code> for POIs.</div>
+
+    <label for="location">Location (city + region)</label>
+    <input type="text" id="location" placeholder="Seattle, Washington">
+
+    <label for="description">Why this place (2–4 sentences)</label>
+    <textarea id="description" placeholder="What makes this place culturally, historically, educationally, or recreationally meaningful?"></textarea>
+
+    <label for="photo_url">Photo URL (optional)</label>
+    <input type="url" id="photo_url" placeholder="https://imgur.com/..." inputmode="url">
+    <div class="hint">From public space. No identifiable people if avoidable.</div>
+
+    <label for="submitter">Your GitHub handle (optional)</label>
+    <input type="text" id="submitter" placeholder="@your-handle">
+    <div class="hint">Credited as the nominator on the planted seed's lineage.</div>
+  </section>
+
+  <!-- Step 3: Eligibility -->
+  <section class="pane">
+    <h2><span class="step-num">3</span> Eligibility check</h2>
+    <div class="desc">Same spirit as Pokémon Go's PokéStop submission rules. Every box must be checked or this place isn't eligible.</div>
+
+    <div class="check-list">
+      <label class="check"><input type="checkbox" class="elig"> Publicly accessible (not gated, not private property)</label>
+      <label class="check"><input type="checkbox" class="elig"> Permanent installation — not a pop-up, festival, or temporary event</label>
+      <label class="check"><input type="checkbox" class="elig"> Has clear cultural, historical, educational, or recreational value</label>
+      <label class="check"><input type="checkbox" class="elig"><span><span class="reject">NOT</span> a K-12 school or daycare (children's privacy)</span></label>
+      <label class="check"><input type="checkbox" class="elig"><span><span class="reject">NOT</span> a hospital, police station, fire station, or emergency facility</span></label>
+      <label class="check"><input type="checkbox" class="elig"><span><span class="reject">NOT</span> a private residence</span></label>
+      <label class="check"><input type="checkbox" class="elig"><span><span class="reject">NOT</span> an adult business</span></label>
+      <label class="check"><input type="checkbox" class="elig"><span><span class="reject">NOT</span> a generic chain (a Walmart parking lot is not a place; a historic mural inside one might be)</span></label>
+      <label class="check"><input type="checkbox" class="elig"> Photographable from public space without trespassing</label>
+      <label class="check"><input type="checkbox" class="elig"> Submitting in good faith — this is a public commons</label>
+    </div>
+
+    <div class="rules-box" style="margin-top:14px;">
+      <strong>Why these rules?</strong> The platform anchors POIs at real places that visitors can find, photograph, and gather around safely. Schools, hospitals, and private homes are excluded for privacy. Generic chains are excluded because the network rewards specific cultural/historical/recreational meaning, not commerce.
+    </div>
+  </section>
+
+  <!-- Step 4: Submit -->
+  <section class="submit-pane">
+    <h2>Submit for review</h2>
+    <p>Builds a prefilled GitHub Issue at <code>kody-w/RAPP</code>. A maintainer reviews against the rules above. If approved, the place gets planted via <code>plant.sh</code> — a real public mirror at <code>kody-w.github.io/&lt;slug&gt;</code> with your nominated metadata.</p>
+    <button class="primary-cta" id="btn-submit" disabled>Open GitHub Issue draft</button>
+    <div class="submit-hint">You'll be sent to GitHub. Click "Submit new issue" there to finish.</div>
+  </section>
+
+  <footer>
+    <a href="./plant.html">Plant a front door</a> ·
+    <a href="./plant_qr.html">Share a QR</a> ·
+    <a href="https://kody-w.github.io/RAPP/">RAPP</a>
+  </footer>
+</div>
+
+<script>
+"use strict";
+
+const ISSUES_BASE = "https://github.com/kody-w/RAPP/issues/new";
+const TEMPLATE = "place-submission.yml";
+
+const els = {
+  btnLocate:    document.getElementById("btn-locate"),
+  btnManual:    document.getElementById("btn-manual"),
+  geoStatus:    document.getElementById("geo-status"),
+  manualCoords: document.getElementById("manual-coords"),
+  lat:          document.getElementById("lat"),
+  lng:          document.getElementById("lng"),
+  placeName:    document.getElementById("place_name"),
+  displayName:  document.getElementById("display_name"),
+  slug:         document.getElementById("slug"),
+  location:     document.getElementById("location"),
+  description:  document.getElementById("description"),
+  photoUrl:     document.getElementById("photo_url"),
+  submitter:    document.getElementById("submitter"),
+  btnSubmit:    document.getElementById("btn-submit"),
+};
+
+let coords = { lat: null, lng: null };
+
+// ── Slug auto-derivation
+function sluggify(s) {
+  return (s || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 50);
+}
+
+els.placeName.addEventListener("input", () => {
+  const auto = sluggify(els.placeName.value);
+  if (auto && (els.slug.dataset.touched !== "1")) {
+    els.slug.value = auto.startsWith("pkstop-") ? auto : ("pkstop-" + auto);
+  }
+  if (els.displayName.dataset.touched !== "1") {
+    els.displayName.value = els.placeName.value;
+  }
+  validate();
+});
+els.slug.addEventListener("input", () => { els.slug.dataset.touched = "1"; validate(); });
+els.displayName.addEventListener("input", () => { els.displayName.dataset.touched = "1"; validate(); });
+els.location.addEventListener("input", validate);
+els.description.addEventListener("input", validate);
+
+// ── Geolocation
+els.btnLocate.addEventListener("click", () => {
+  if (!navigator.geolocation) {
+    setGeoStatus("Geolocation isn't available in this browser. Use 'Enter manually'.", "err");
+    return;
+  }
+  setGeoStatus("Locating you...");
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      coords.lat = pos.coords.latitude;
+      coords.lng = pos.coords.longitude;
+      els.lat.value = coords.lat.toFixed(6);
+      els.lng.value = coords.lng.toFixed(6);
+      els.manualCoords.hidden = false;
+      const acc = Math.round(pos.coords.accuracy);
+      setGeoStatus(`Got it — ${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)} (±${acc}m)`, "ok");
+      validate();
+    },
+    err => {
+      setGeoStatus("Couldn't get location: " + err.message + ". You can enter it manually.", "err");
+      els.manualCoords.hidden = false;
+    },
+    { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+  );
+});
+
+els.btnManual.addEventListener("click", () => {
+  els.manualCoords.hidden = false;
+  els.lat.focus();
+  setGeoStatus("Enter coordinates manually below.");
+});
+
+[els.lat, els.lng].forEach(el => el.addEventListener("input", () => {
+  const lat = parseFloat(els.lat.value);
+  const lng = parseFloat(els.lng.value);
+  if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+    coords.lat = lat;
+    coords.lng = lng;
+    setGeoStatus(`Manual: ${lat.toFixed(5)}, ${lng.toFixed(5)}`, "ok");
+  } else {
+    coords.lat = null;
+    coords.lng = null;
+    setGeoStatus("Coordinates not yet valid.");
+  }
+  validate();
+}));
+
+function setGeoStatus(msg, kind) {
+  els.geoStatus.textContent = msg;
+  els.geoStatus.className = "geo-status" + (kind ? " " + kind : "");
+}
+
+// ── Eligibility checkboxes
+const eligBoxes = document.querySelectorAll(".elig");
+eligBoxes.forEach(b => b.addEventListener("change", validate));
+
+function allEligible() {
+  return Array.from(eligBoxes).every(b => b.checked);
+}
+
+// ── Validation
+function isValidSlug(s) { return /^[a-z0-9][a-z0-9_-]*$/.test(s || ""); }
+
+function validate() {
+  const placeNameOK   = els.placeName.value.trim().length >= 2;
+  const displayNameOK = els.displayName.value.trim().length >= 2;
+  const slugOK        = isValidSlug(els.slug.value);
+  const locationOK    = els.location.value.trim().length >= 2;
+  const descOK        = els.description.value.trim().length >= 10;
+  const coordsOK      = coords.lat !== null && coords.lng !== null;
+  const eligOK        = allEligible();
+
+  const allOK = placeNameOK && displayNameOK && slugOK && locationOK && descOK && coordsOK && eligOK;
+  els.btnSubmit.disabled = !allOK;
+  return allOK;
+}
+
+// ── Build the prefilled GitHub Issue URL
+function buildIssueUrl() {
+  const params = new URLSearchParams();
+  params.set("template", TEMPLATE);
+  params.set("title", `[place] ${els.placeName.value.trim()}`);
+
+  // GitHub Issue Forms map URL params to field IDs in the .yml template
+  params.set("place_name",   els.placeName.value.trim());
+  params.set("display_name", els.displayName.value.trim());
+  params.set("slug",         els.slug.value.trim());
+  params.set("location",     els.location.value.trim());
+  params.set("coordinates",  `${coords.lat.toFixed(6)},${coords.lng.toFixed(6)}`);
+  params.set("description",  els.description.value.trim());
+  if (els.photoUrl.value.trim())  params.set("photo_url", els.photoUrl.value.trim());
+  if (els.submitter.value.trim()) params.set("submitter", els.submitter.value.trim());
+
+  return `${ISSUES_BASE}?${params.toString()}`;
+}
+
+els.btnSubmit.addEventListener("click", () => {
+  if (!validate()) return;
+  const url = buildIssueUrl();
+  // Open in a new tab — keeps the form state if user wants to refine later
+  window.open(url, "_blank", "noopener,noreferrer");
+});
+
+// initial validate (button disabled until all fields valid)
+validate();
+</script>
+
+</body>
+</html>

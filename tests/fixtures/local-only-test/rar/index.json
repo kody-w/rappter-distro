@@ -1,0 +1,43 @@
+{
+  "schema": "rapp-rar-index/1.0",
+  "name": "local-only-test",
+  "rar_for": "local/local-only-test",
+  "purpose": "Minimal participation kit for the local-only test fixture. Used by F10/audit + on-device verification scenarios. No live raw_url — all entries are file:// referenced.",
+  "version": "1.0",
+  "created_at": "2026-05-09T02:00:00Z",
+  "raw_url_prefix": "file://./",
+  "kind": "neighborhood",
+  "required_for_participation": [
+    {
+      "kind": "agent",
+      "name": "LocalTestPing",
+      "file": "agents/local_test_ping_agent.py",
+      "raw_url": "file://./agents/local_test_ping_agent.py",
+      "sha256": "97a7a73258a85565bebaaa183992b46b5a870d8558149ac4849b48a45efe9a2e",
+      "schema": "rapp-agent/1.0"
+    }
+  ],
+  "kernel_base_included": [
+    {
+      "kind": "agent",
+      "name": "BasicAgent",
+      "file": "agents/basic_agent.py",
+      "raw_url": "file://./agents/basic_agent.py",
+      "sha256": "210c5fef2fbe0ff3effcd4524871a27dc9e31f23c4bd28110e8695f8c1276012",
+      "schema": "kernel/basic_agent"
+    }
+  ],
+  "optional_for_participation": [],
+  "organs": [],
+  "senses": [],
+  "rapplications": [],
+  "cards": [],
+  "verification": {
+    "schema": "rapp-rar-manifest/1.0",
+    "scheme": "sha256"
+  },
+  "federation": {
+    "default_mode": "separate",
+    "federates_with": []
+  }
+}
