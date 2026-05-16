@@ -1,0 +1,61 @@
+{
+  "schema": "rapp-zoo-api/1.0",
+  "name": "rapp-zoo",
+  "version": "1.0.0",
+  "description": "Local-first Pokédex for digital organisms. The page itself is a static HTML at /rapp-zoo/. This JSON drives what the page shows in the Starters and Discover tabs without anyone touching the HTML.",
+  "generated_at": "2026-05-02T23:02:00Z",
+  "self_url": "https://kody-w.github.io/RAPP/rapp-zoo/api/v1/index.json",
+
+  "sources": {
+    "rapp_store": "https://raw.githubusercontent.com/kody-w/rapp_store/main/api/v1/index.json"
+  },
+
+  "links": {
+    "rapp_store_ui":          "https://kody-w.github.io/RAPP_Store/",
+    "rapp_brainstem_install": "https://kody-w.github.io/RAPP/",
+    "rapp_brainstem_repo":    "https://github.com/kody-w/RAPP",
+    "rapp_zoo_source":        "https://github.com/kody-w/RAPP/tree/main/rapp-zoo"
+  },
+
+  "starters": [
+    {
+      "id": "workday",
+      "name": "Workday",
+      "tagline": "Focused, terse organism for daily standups, OKRs, calendar triage.",
+      "emoji": "💼",
+      "egg": "./starters/workday.egg",
+      "rappid": "rappid:v2:starter:@rapp/workday:d14445a43e8ea99902ad811cdc94bb0b"
+    },
+    {
+      "id": "playtime",
+      "name": "Playtime",
+      "tagline": "Curious, expressive, weird-tangent friend. Music + games + storytelling.",
+      "emoji": "🎮",
+      "egg": "./starters/playtime.egg",
+      "rappid": "rappid:v2:starter:@rapp/playtime:785411e3edd8293d2d24efe1236b49d0"
+    },
+    {
+      "id": "journal",
+      "name": "Journal",
+      "tagline": "Long-memory keeper. Recalls what you told it last week.",
+      "emoji": "📓",
+      "egg": "./starters/journal.egg",
+      "rappid": "rappid:v2:starter:@rapp/journal:ef5edcfe86102d6d6bf583c5968e8baf"
+    }
+  ],
+
+  "featured_starters": [
+    "egg_hatcher",
+    "wildhaven_ceo",
+    "bookfactory",
+    "spine_dag",
+    "rapp-zoo"
+  ],
+
+  "notes": [
+    "starters is the bundled set — three personality eggs (workday/playtime/journal) that live in this repo at rapp-zoo/starters/<id>.egg. Each is a brainstem-egg/2.2-organism with a soul.md + a deterministic rappid. Hatching the same starter on two machines gets the same rappid, so the organisms recognize each other.",
+    "featured_starters is a curation of rapplication ids from the RAPP_Store v1 catalog — bigger, full-featured cartridges that round out what the Starters tab presents. The page renders the bundled `starters` first, then the featured RAPP_Store rapps below.",
+    "Discover tab pulls the full RAPP_Store catalog from sources.rapp_store and renders one card per rapplication.",
+    "Bundled starter .egg files are built by rapp-zoo/starters/_build.py — re-run it after changing a soul.md and commit the regenerated eggs."
+  ]
+}
