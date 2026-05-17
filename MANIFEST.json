@@ -1,0 +1,307 @@
+{
+  "schema": "rappter-distro-install-manifest/1.0",
+  "repo": "kody-w/rappter-distro",
+  "branch": "main",
+  "files": [
+    {
+      "src": "agents/@rappter/learn_new_agent.py",
+      "dst": "agents/@rappter/learn_new_agent.py",
+      "size": 38964,
+      "sha256": "13faf1176aa58205fdb2681e9d0fac6d4a4aaa3aca70ac223f7c0745db37342f"
+    },
+    {
+      "src": "agents/@rappter/swarm_factory_agent.py",
+      "dst": "agents/@rappter/swarm_factory_agent.py",
+      "size": 46519,
+      "sha256": "3e2d0fc942aa41d079f2fcb5003b9c4abc8fc7243dbb3994445a792b1c6358da"
+    },
+    {
+      "src": "agents/@rappter/upgrade_agent.py",
+      "dst": "agents/@rappter/upgrade_agent.py",
+      "size": 10089,
+      "sha256": "12918cdbd136a493f310dc85be3eadc83cf4fb4541b7c8e4b5d4e841d3547b36"
+    },
+    {
+      "src": "ui/index.html",
+      "dst": "index.html",
+      "size": 223694,
+      "sha256": "e6a5edf176b6ae44728bfd6d36c243848aa325855a9a52d872af83219cc37e5b"
+    },
+    {
+      "src": "ui/tls_proxy.py",
+      "dst": "tls_proxy.py",
+      "size": 9282,
+      "sha256": "afbabfd2c5d2455c34ef9d2aba5fe70869d1c7a18ff4977c6c13a33bed319856"
+    },
+    {
+      "src": "lib/bond.py",
+      "dst": "utils/bond.py",
+      "size": 43179,
+      "sha256": "1b98985593288858cd8541509da58f798cfb35137eb0e0e0f02a5a552cb5f374"
+    },
+    {
+      "src": "lib/boot.py",
+      "dst": "utils/boot.py",
+      "size": 25926,
+      "sha256": "c1e0ffe8c3cacc3ba8c33f0c5aab685aaa26dd4584fbc6db984dea6dcf049d7d"
+    },
+    {
+      "src": "lib/egg.py",
+      "dst": "utils/egg.py",
+      "size": 35288,
+      "sha256": "eb357b9c330d9943f2c31739b3cafdbf8363a4d9624e690ebf0e1729c367b755"
+    },
+    {
+      "src": "lib/frames.py",
+      "dst": "utils/frames.py",
+      "size": 6885,
+      "sha256": "5f436dc266ad12d70c562e761615e33dcc853b7ae665202d3dbcc7b716522fec"
+    },
+    {
+      "src": "lib/index_card.py",
+      "dst": "utils/index_card.py",
+      "size": 6989,
+      "sha256": "3b507230d7b6bbcc831b92a638f5df7b0127fa514c19d745920da3746e348f35"
+    },
+    {
+      "src": "lib/lineage.py",
+      "dst": "utils/lineage.py",
+      "size": 8884,
+      "sha256": "194802e1058bd53b7e97bf4fa3f8d7496aff202df0469c0ab43fa22ba32a60b1"
+    },
+    {
+      "src": "lib/lineage_check.py",
+      "dst": "utils/lineage_check.py",
+      "size": 10485,
+      "sha256": "842fd7b1f6e86894ff61b4b2f52eaf31777329b9e1beeaa7b60fa85cc69390a2"
+    },
+    {
+      "src": "lib/llm.py",
+      "dst": "utils/llm.py",
+      "size": 13433,
+      "sha256": "df523d9741d48774305363129763088961670c70aa63e2657e30c6252f164a89"
+    },
+    {
+      "src": "organs/__init__.py",
+      "dst": "utils/organs/__init__.py",
+      "size": 5199,
+      "sha256": "501b86c9d5beab58f5211b02c56a6d98b367163034e8e5e0a31f2ed3bde1921c"
+    },
+    {
+      "src": "organs/estate_organ.py",
+      "dst": "utils/organs/estate_organ.py",
+      "size": 11169,
+      "sha256": "a248fb7f03ecec7a6a205fe6999a0c49a8d008d8fd484ad153d81b95dec4b2c0"
+    },
+    {
+      "src": "organs/lifecycle_organ.py",
+      "dst": "utils/organs/lifecycle_organ.py",
+      "size": 7624,
+      "sha256": "5fff54c8ec2520d815618bf4551778d2d7cf98d8a624205dc7aebe9e0b932c6e"
+    },
+    {
+      "src": "organs/neighborhood_membership_organ.py",
+      "dst": "utils/organs/neighborhood_membership_organ.py",
+      "size": 31720,
+      "sha256": "58eaf8752b9351cd0f30674f2b57b24867ba71bbfdce183c116b7f2d8c3b3bd9"
+    },
+    {
+      "src": "organs/neighborhood_organ.py",
+      "dst": "utils/organs/neighborhood_organ.py",
+      "size": 3906,
+      "sha256": "808779f5c9d7832f6c52b447aedca60e24e8822b6a76f1c6481ca5db43adbd30"
+    },
+    {
+      "src": "organs/swarm_estate_organ.py",
+      "dst": "utils/organs/swarm_estate_organ.py",
+      "size": 10446,
+      "sha256": "c13da34601a4df7db3b891056b32cfc364f5415474551c4bd438f92e52fdaf29"
+    },
+    {
+      "src": "lib/peer_registry.py",
+      "dst": "utils/peer_registry.py",
+      "size": 9243,
+      "sha256": "36fd6de576a1a84b16a316da973e2780583f8f8ade601fb00d13c1978a9a7a9e"
+    },
+    {
+      "src": "lib/rappid.py",
+      "dst": "utils/rappid.py",
+      "size": 6624,
+      "sha256": "603fe680cb2f8a87b3e34e699f62c1152dc53eed8a69d5bf9f335407a049cd92"
+    },
+    {
+      "src": "senses/__init__.py",
+      "dst": "utils/senses/__init__.py",
+      "size": 5318,
+      "sha256": "3b5f1653e9f51a7966e3dc98175e6d36c0bd760a5962048861255ce55a909a2c"
+    },
+    {
+      "src": "senses/twin_sense.py",
+      "dst": "utils/senses/twin_sense.py",
+      "size": 2473,
+      "sha256": "d64ab017107db229f6b7ed7fafd82f8bac165633ed97bef7f5f9f08cbf7acadb"
+    },
+    {
+      "src": "senses/voice_sense.py",
+      "dst": "utils/senses/voice_sense.py",
+      "size": 961,
+      "sha256": "168bcdd309325fea9a4b7ff21cb5dbd594dfbad277a6a89edf26dd238c5607cc"
+    },
+    {
+      "src": "lib/twin.py",
+      "dst": "utils/twin.py",
+      "size": 7798,
+      "sha256": "485f81aada1b2a0d0739a1e032a04d4a427e078153206414c787600644dabd3a"
+    },
+    {
+      "src": "ui/web/binder.html",
+      "dst": "utils/web/binder.html",
+      "size": 23122,
+      "sha256": "740b843da680c384211c9bd3eb5c21f417fddd5d5cea1d8b16f487a4aa808d35"
+    },
+    {
+      "src": "ui/web/estate.html",
+      "dst": "utils/web/estate.html",
+      "size": 6936,
+      "sha256": "b915e52bebdb6e3428dfc52c84a0903bf38a7fc22837c7e065764be91796b8e8"
+    },
+    {
+      "src": "ui/web/icon-180.png",
+      "dst": "utils/web/icon-180.png",
+      "size": 15402,
+      "sha256": "d8da5ef8aeaec3f8c7f60192f363607c1a82fabcfbe91d304114578d7eb2e95c"
+    },
+    {
+      "src": "ui/web/icon-192.png",
+      "dst": "utils/web/icon-192.png",
+      "size": 6763,
+      "sha256": "52a95973b99209391d284e018140843cf2790e8b9ff67b914bbbba4a32015f88"
+    },
+    {
+      "src": "ui/web/icon-192.svg",
+      "dst": "utils/web/icon-192.svg",
+      "size": 520,
+      "sha256": "4c09514b33688a2e7c551701743644c8387845ab3c7af0c0c71493d633ada147"
+    },
+    {
+      "src": "ui/web/icon-512.png",
+      "dst": "utils/web/icon-512.png",
+      "size": 23189,
+      "sha256": "5cd709f003c353d6fd753107b328e437e9a3b91839aa0d0cca355017ca1fe506"
+    },
+    {
+      "src": "ui/web/icon-512.svg",
+      "dst": "utils/web/icon-512.svg",
+      "size": 748,
+      "sha256": "93dc2816c6609421dacfa2c83b12cfc8cbe437b5ff4a27782dfaa2d76c02a1eb"
+    },
+    {
+      "src": "ui/web/index.html",
+      "dst": "utils/web/index.html",
+      "size": 314197,
+      "sha256": "78b4244ae9cc1c4f91e146ee64ccc2b7f98c9397ffe4e0a5a481da968e7a5c0a"
+    },
+    {
+      "src": "ui/web/manage.html",
+      "dst": "utils/web/manage.html",
+      "size": 58888,
+      "sha256": "964da3c2983b92855084668b8d180443c5d688f16af0a30f4b84ce6afecd15dd"
+    },
+    {
+      "src": "ui/web/manifest.webmanifest",
+      "dst": "utils/web/manifest.webmanifest",
+      "size": 1687,
+      "sha256": "fcf02b756414821a20d18f53437bde7b77b78110f6fac03c0a0227c9feafd5b7"
+    },
+    {
+      "src": "ui/web/mobile/icon-192.svg",
+      "dst": "utils/web/mobile/icon-192.svg",
+      "size": 497,
+      "sha256": "79812cd9bfdc8404d21bafbcb6497128d02555948319414f6c2f7263515a43c0"
+    },
+    {
+      "src": "ui/web/mobile/icon-512.svg",
+      "dst": "utils/web/mobile/icon-512.svg",
+      "size": 508,
+      "sha256": "e51d11240afca1e29db1a12effca11c00fa9a10f8ba8b3cb515a4e324aae2c83"
+    },
+    {
+      "src": "ui/web/mobile/index.html",
+      "dst": "utils/web/mobile/index.html",
+      "size": 26322,
+      "sha256": "fb81fdd5930ee8dc035ded93c4e4de9a17ead6699b5870c41937ede8859f4ed9"
+    },
+    {
+      "src": "ui/web/mobile/manifest.webmanifest",
+      "dst": "utils/web/mobile/manifest.webmanifest",
+      "size": 554,
+      "sha256": "8889c2e455e4aa7aabac3151b192a705ad987fd38ca08b5bd072f3688497a4a4"
+    },
+    {
+      "src": "ui/web/mobile/rapp-mobile.js",
+      "dst": "utils/web/mobile/rapp-mobile.js",
+      "size": 40148,
+      "sha256": "00907811b0ed70083a513b2a4848fe86a4fd300aac129e7c3bb051152cdceeeb"
+    },
+    {
+      "src": "ui/web/mobile/service-worker.js",
+      "dst": "utils/web/mobile/service-worker.js",
+      "size": 1921,
+      "sha256": "da4902eb26acc771b243c85c09376a8d0bf3522780f58f648a49603b63aad714"
+    },
+    {
+      "src": "ui/web/neighborhood.html",
+      "dst": "utils/web/neighborhood.html",
+      "size": 7797,
+      "sha256": "9d198f98242ec8dafd286a1426146b7a2f427b1417ba4e8945f48081740f7bab"
+    },
+    {
+      "src": "ui/web/onboard/book-factory.html",
+      "dst": "utils/web/onboard/book-factory.html",
+      "size": 19080,
+      "sha256": "9ed724302222e9f314d4b27e2152e326b82fbaeaf303cf305b14f55d2011fc9d"
+    },
+    {
+      "src": "ui/web/onboard/index.html",
+      "dst": "utils/web/onboard/index.html",
+      "size": 37425,
+      "sha256": "ffd7c46bc3cab37171704b9480e527064c828319818657451bf5da43b64f2008"
+    },
+    {
+      "src": "ui/web/onboard/registry.json",
+      "dst": "utils/web/onboard/registry.json",
+      "size": 35212,
+      "sha256": "a9f01bacb15a23bb6fe974b4586248813cc654605a6c98418b983b69a08b6378"
+    },
+    {
+      "src": "ui/web/pair.html",
+      "dst": "utils/web/pair.html",
+      "size": 59211,
+      "sha256": "2a0881e779ff17e6031f2894c7f8c71a63a82e1838bf37faa09d78f842793e4c"
+    },
+    {
+      "src": "ui/web/rapp.js",
+      "dst": "utils/web/rapp.js",
+      "size": 33734,
+      "sha256": "97a9fc5d462066fa522659f12f00b38c794d9adc1164fdc51e80e9e9980da0b0"
+    },
+    {
+      "src": "ui/web/rapplications.html",
+      "dst": "utils/web/rapplications.html",
+      "size": 13583,
+      "sha256": "5572c86c31f4e28ec5cc9c15de634350671b9969ff0ccdd3fb86fffb723a38dd"
+    },
+    {
+      "src": "ui/web/sw.js",
+      "dst": "utils/web/sw.js",
+      "size": 4412,
+      "sha256": "15d423b3e86efae6d596c74d969b7b582f8331bb62e6810e529e4c8033ba6b10"
+    },
+    {
+      "src": "lib/workspace.py",
+      "dst": "utils/workspace.py",
+      "size": 4896,
+      "sha256": "cf9a9b91c8f07fbbd8a0fc7d30d6d30d20d9912ec9cf03467e5c5246a8d9862e"
+    }
+  ]
+}
