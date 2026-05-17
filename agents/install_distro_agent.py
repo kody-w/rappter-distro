@@ -35,7 +35,7 @@ Actions:
                writes nothing; returns the exact install plan.
     install  — applies the manifest. Requires confirm=True.
 
-Stdlib only — urllib, json, hashlib, os, shutil, tempfile, sys.
+Stdlib only — urllib, json, hashlib, os, sys.
 """
 
 from __future__ import annotations
@@ -43,12 +43,37 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-import shutil
 import sys
-import tempfile
 import urllib.error
 import urllib.request
 from typing import Callable, Optional
+
+
+# ── RAR manifest (rapp-agent/1.0) ────────────────────────────────────────
+#
+# Read by the kody-w/RAR submission pipeline. Snake_case throughout — the
+# registry enforces no-dashes. The forge derives the holo card from this
+# manifest deterministically.
+
+__manifest__ = {
+    "schema": "rapp-agent/1.0",
+    "name": "@kody/install_rappter_distro",
+    "version": "1.0.0",
+    "display_name": "Install Rappter Distro",
+    "description": (
+        "Single-file installer that pulls the full rappter-distro "
+        "(organs, senses, lib/, rich UI, @rappter agents) from "
+        "raw.githubusercontent.com via MANIFEST.json with sha256 "
+        "verification per file. Refuses to touch the three sacred "
+        "kernel files."
+    ),
+    "author": "Kody Wildfeuer",
+    "tags": ["installer", "distro", "rappter", "bootstrap", "organism"],
+    "category": "pipeline",
+    "quality_tier": "community",
+    "requires_env": [],
+    "dependencies": ["@rapp/basic_agent"],
+}
 
 
 # ── BasicAgent import (with offline shim) ─────────────────────────────────
@@ -113,37 +138,144 @@ MANIFEST_SCHEMA = "rappter-distro-install-manifest/1.0"
 
 
 # ── Path helpers ─────────────────────────────────────────────────────────
+#
+# Two distinct paths here, deliberately separated so the global grail
+# install stays pristine while the rappter distro hatches into its own
+# folder:
+#
+#   source_home  — where the canonical grail brainstem lives. Read-only
+#                  from the agent's perspective; we copy out of it.
+#                  Default: $BRAINSTEM_HOME or ~/.brainstem.
+#   target_home  — where the hatched rappter organism is materialized.
+#                  Created if missing; kernel files copied here, then
+#                  distro files laid on top.
+#                  Default: $RAPPTER_HOME or ~/.brainstem-rappter.
+#
+# source_home can have the kernel src either flat (~/.brainstem/brainstem.py)
+# or nested (~/.brainstem/src/rapp_brainstem/brainstem.py — the layout
+# rapp-installer actually produces). _discover_kernel_src() handles both.
 
-def _brainstem_home() -> str:
-    """Resolve $BRAINSTEM_HOME, falling back to ~/.brainstem."""
+
+def _default_source_home() -> str:
     return os.environ.get(
         "BRAINSTEM_HOME",
         os.path.join(os.path.expanduser("~"), ".brainstem"),
     )
 
 
-def _brainstem_kernel_path(home: str) -> str:
-    return os.path.join(home, "brainstem.py")
+def _default_target_home() -> str:
+    return os.environ.get(
+        "RAPPTER_HOME",
+        os.path.join(os.path.expanduser("~"), ".brainstem-rappter"),
+    )
 
 
-def _verify_kernel_present(home: str) -> tuple[bool, str]:
-    """Confirm a grail kernel exists at `home`. Returns (ok, message)."""
-    kernel = _brainstem_kernel_path(home)
-    if not os.path.isfile(kernel):
+def _discover_kernel_src(source_home: str) -> Optional[str]:
+    """Locate the directory under `source_home` that contains brainstem.py.
+    Returns the directory path, or None if the kernel isn't found."""
+    candidates = [
+        source_home,
+        os.path.join(source_home, "src", "rapp_brainstem"),
+        os.path.join(source_home, "rapp_brainstem"),
+    ]
+    for c in candidates:
+        if os.path.isfile(os.path.join(c, "brainstem.py")):
+            return c
+    return None
+
+
+def _verify_kernel_present(source_home: str) -> tuple[bool, str, Optional[str]]:
+    """Confirm a grail kernel exists somewhere under `source_home`.
+    Returns (ok, message, kernel_src_dir)."""
+    kernel_src = _discover_kernel_src(source_home)
+    if kernel_src is None:
         return False, (
-            f"no grail brainstem found at {kernel}. install the kernel first: "
+            f"no grail brainstem found under {source_home}. "
+            "install the kernel first: "
             "curl -fsSL https://kody-w.github.io/RAPP/installer/install.sh | bash"
-        )
-    return True, f"found grail brainstem at {home}"
+        ), None
+    return True, f"found grail brainstem src at {kernel_src}", kernel_src
 
 
-def _read_kernel_version(home: str) -> str:
-    vfile = os.path.join(home, "VERSION")
+def _read_kernel_version(kernel_src: str) -> str:
+    vfile = os.path.join(kernel_src, "VERSION")
     try:
         with open(vfile, "r", encoding="utf-8") as f:
             return f.read().strip()
     except OSError:
         return "unknown"
+
+
+# ── Kernel-src → target_home copy ────────────────────────────────────────
+
+# Files / dirs we never carry across when copying the kernel src. These
+# either belong to the source organism's identity (different rappid, keys,
+# logs) or are host-specific binaries (venv) that won't relocate cleanly.
+KERNEL_COPY_SKIP_DIRS = {
+    "__pycache__", ".git", ".idea", ".vscode",
+    "venv", ".venv", "node_modules", "logs",
+    "keys", "peers",
+}
+KERNEL_COPY_SKIP_SUFFIXES = (".pyc", ".pyo", ".log", ".swp")
+KERNEL_COPY_SKIP_FILES = {
+    ".DS_Store", ".copilot_token", ".copilot_session", ".copilot_pending",
+    ".brainstem_book.json", "brainstem.log", "lifecycle.log",
+    "rappid.json", "estate.json",
+    "private-estate-map.json", "private-estate-secret",
+}
+
+
+def _walk_kernel_src(kernel_src: str) -> list[tuple[str, str]]:
+    """Walk the kernel src tree, returning (abs_src_path, rel_dst_path) pairs.
+    rel_dst_path is the path the file should land at, relative to target_home."""
+    out: list[tuple[str, str]] = []
+    for dirpath, dirnames, filenames in os.walk(kernel_src):
+        dirnames[:] = sorted(d for d in dirnames if d not in KERNEL_COPY_SKIP_DIRS)
+        rel_dir = os.path.relpath(dirpath, kernel_src)
+        for fname in sorted(filenames):
+            if fname in KERNEL_COPY_SKIP_FILES:
+                continue
+            if fname.endswith(KERNEL_COPY_SKIP_SUFFIXES):
+                continue
+            src_abs = os.path.join(dirpath, fname)
+            if rel_dir == ".":
+                rel_dst = fname
+            else:
+                rel_dst = os.path.join(rel_dir, fname).replace(os.sep, "/")
+            out.append((src_abs, rel_dst))
+    return out
+
+
+def _copy_kernel_to_target(
+    kernel_src: str, target_home: str, *, dry_run: bool
+) -> list[dict]:
+    """Carry the kernel src tree into target_home (flat layout — boot.py
+    expects target_home/brainstem.py, target_home/agents/basic_agent.py).
+    Returns a per-file manifest entry."""
+    pairs = _walk_kernel_src(kernel_src)
+    out: list[dict] = []
+    for src_abs, rel_dst in pairs:
+        dst_abs = os.path.join(target_home, rel_dst)
+        with open(src_abs, "rb") as f:
+            data = f.read()
+        sha = _sha256_bytes(data)
+        existed = os.path.isfile(dst_abs)
+        entry = {
+            "src": os.path.relpath(src_abs, kernel_src).replace(os.sep, "/"),
+            "dst": rel_dst,
+            "size": len(data),
+            "sha256": sha,
+            "existed_before": existed,
+        }
+        if dry_run:
+            entry["action"] = "would-copy"
+        else:
+            os.makedirs(os.path.dirname(dst_abs) or target_home, exist_ok=True)
+            with open(dst_abs, "wb") as f:
+                f.write(data)
+            entry["action"] = "overwrote" if existed else "copied"
+        out.append(entry)
+    return out
 
 
 # ── Raw-URL fetcher ──────────────────────────────────────────────────────
@@ -368,18 +500,19 @@ def _summarize(manifest_result: list[dict]) -> dict:
 
 # ── Status (what's already installed) ────────────────────────────────────
 
-def _status_local(home: str) -> dict:
-    """Report what looks like rappter-distro state currently on disk."""
+def _status_at(home: str) -> dict:
+    """Report what looks like rappter-distro state currently at `home`."""
+    kernel_src = _discover_kernel_src(home)
     checks = {
-        "kernel_present": os.path.isfile(_brainstem_kernel_path(home)),
-        "kernel_version": _read_kernel_version(home),
+        "kernel_present": kernel_src is not None,
+        "kernel_src": kernel_src,
+        "kernel_version": _read_kernel_version(kernel_src) if kernel_src else None,
         "boot_py": os.path.isfile(os.path.join(home, "utils", "boot.py")),
         "organs_dir": os.path.isdir(os.path.join(home, "utils", "organs")),
         "senses_dir": os.path.isdir(os.path.join(home, "utils", "senses")),
         "rich_ui": False,
         "rappter_agents_dir": os.path.isdir(os.path.join(home, "agents", "@rappter")),
     }
-    # The distro's rich index.html is ~223 KB; grail's is much smaller.
     idx = os.path.join(home, "index.html")
     if os.path.isfile(idx):
         try:
@@ -411,7 +544,8 @@ def _status_local(home: str) -> dict:
 
 def install_distro(
     *,
-    brainstem_home: Optional[str] = None,
+    source_home: Optional[str] = None,
+    target_home: Optional[str] = None,
     branch: str = DEFAULT_BRANCH,
     repo: str = DISTRO_REPO,
     source_dir: Optional[str] = None,
@@ -419,49 +553,83 @@ def install_distro(
     fetcher: Optional[Callable[[str], bytes]] = None,
     dry_run: bool = False,
 ) -> dict:
-    """Pull the distro from raw.githubusercontent.com (or a test override)
-    and lay it down on the brainstem at `brainstem_home`.
+    """Hatch the rappter distro into its own folder, side-by-side with the
+    canonical grail brainstem.
 
-    Source resolution priority (highest first):
-      1. source_dir   — read everything from a local checkout (no network,
-                        no manifest needed). Used by the source-of-truth
-                        test and as a no-network install path for dev.
-      2. manifest +/- fetcher — caller supplies a pre-parsed manifest dict
-                        and (optionally) a fetcher callable. The fetcher
-                        gets `src` and returns bytes. Used by tests that
-                        want to drive the full manifest pipeline without
-                        hitting the network.
-      3. fetcher only — caller supplies a fetcher; agent uses it to GET
-                        "MANIFEST.json" first, then each file.
-      4. network      — default: build a fetcher against
-                        raw.githubusercontent.com/<repo>/<branch>.
+    Two phases:
+      1. KERNEL COPY — find the brainstem.py under `source_home`, then copy
+         the entire kernel src tree into `target_home` (flat layout). The
+         global grail install is never modified.
+      2. DISTRO LAY — fetch MANIFEST.json + each file from
+         raw.githubusercontent.com/<repo>/<branch>/ (or use a test
+         override), verify sha256, lay onto `target_home`.
+
+    After both phases the user runs `python <target_home>/utils/boot.py` to
+    bring up the hatched rappter organism. The original brainstem at
+    `source_home` continues to run as before — both can live in peace.
+
+    Source resolution priority (for the distro lay phase):
+      1. source_dir       — read distro bytes from a local checkout.
+      2. manifest+fetcher — caller pre-supplied both.
+      3. fetcher          — caller supplies fetcher; agent fetches MANIFEST.json through it.
+      4. network          — default: raw.githubusercontent.com.
 
     Never raises. All failures are reported in the returned dict.
     """
-    home = brainstem_home or _brainstem_home()
+    source_home = source_home or _default_source_home()
+    target_home = target_home or _default_target_home()
+
     result: dict = {
         "ok": False,
-        "action": "dry-run" if dry_run else "install",
-        "brainstem_home": home,
+        "action": "dry-run" if dry_run else "hatch",
+        "source_home": source_home,
+        "target_home": target_home,
         "repo": repo,
         "branch": branch,
         "source": None,
+        "kernel_src": None,
         "kernel_version": None,
-        "files_installed": 0,
-        "manifest": [],
+        "kernel_files_copied": 0,
+        "distro_files_installed": 0,
+        "kernel_copy_manifest": [],
+        "distro_manifest": [],
         "summary": {},
         "note": "",
-        "post_install": f"python {os.path.join(home, 'utils', 'boot.py')}",
+        "post_install": f"python {os.path.join(target_home, 'utils', 'boot.py')}",
         "error": None,
     }
 
-    ok, msg = _verify_kernel_present(home)
+    ok, msg, kernel_src = _verify_kernel_present(source_home)
     if not ok:
         result["error"] = msg
         return result
-    result["kernel_version"] = _read_kernel_version(home)
+    result["kernel_src"] = kernel_src
+    result["kernel_version"] = _read_kernel_version(kernel_src)
 
-    # Source 1: local checkout (walks LAYOUT, no manifest needed).
+    # Phase 1: kernel copy. Skipped only when source and target collide
+    # (overlay mode — kept for the rare operator who wants to re-hatch
+    # over their own kernel rather than into a sibling folder).
+    overlay = os.path.abspath(target_home) == os.path.abspath(kernel_src)
+    if overlay:
+        result["note"] = "overlay mode — target_home == kernel_src, skipping kernel copy"
+    else:
+        if not dry_run:
+            try:
+                os.makedirs(target_home, exist_ok=True)
+            except OSError as e:
+                result["error"] = f"could not create target_home: {e}"
+                return result
+        try:
+            kernel_copy_result = _copy_kernel_to_target(
+                kernel_src, target_home, dry_run=dry_run
+            )
+        except OSError as e:
+            result["error"] = f"kernel copy failed: {e}"
+            return result
+        result["kernel_copy_manifest"] = kernel_copy_result
+        result["kernel_files_copied"] = len(kernel_copy_result)
+
+    # Phase 2: distro lay onto target_home.
     if source_dir is not None:
         result["source"] = "dir"
         try:
@@ -469,22 +637,21 @@ def install_distro(
         except Exception as e:
             result["error"] = f"could not build manifest from source_dir: {e}"
             return result
-        # Bytes come from disk via a checkout-local fetcher.
+
         def _dir_fetcher(src: str) -> bytes:
             with open(os.path.join(source_dir, src), "rb") as f:
                 return f.read()
+
         manifest = manifest_built
         fetcher = _dir_fetcher
 
     else:
-        # Build the fetcher if caller didn't supply one.
         if fetcher is None:
             result["source"] = "network"
             fetcher = _network_fetcher(repo, branch)
         else:
             result["source"] = "injected"
 
-        # If no manifest passed, fetch MANIFEST.json via the fetcher.
         if manifest is None:
             try:
                 manifest_bytes = fetcher("MANIFEST.json")
@@ -502,66 +669,79 @@ def install_distro(
 
     try:
         _validate_manifest(manifest)
-    except PermissionError as e:
-        result["error"] = str(e)
-        return result
-    except ValueError as e:
+    except (PermissionError, ValueError) as e:
         result["error"] = str(e)
         return result
 
-    install_result = _apply_manifest(manifest, home, fetcher, dry_run=dry_run)
-    result["manifest"] = install_result
-    result["summary"] = _summarize(install_result)
+    distro_result = _apply_manifest(manifest, target_home, fetcher, dry_run=dry_run)
+    result["distro_manifest"] = distro_result
+    summary = _summarize(distro_result)
+    result["summary"] = summary
 
-    installed = result["summary"].get("installed", 0) + result["summary"].get("overwrote", 0)
-    would = result["summary"].get("would-install", 0)
+    distro_installed = summary.get("installed", 0) + summary.get("overwrote", 0)
+    distro_would = summary.get("would-install", 0)
     failed = (
-        result["summary"].get("fetch-failed", 0)
-        + result["summary"].get("sha-mismatch", 0)
-        + result["summary"].get("write-failed", 0)
+        summary.get("fetch-failed", 0)
+        + summary.get("sha-mismatch", 0)
+        + summary.get("write-failed", 0)
     )
 
-    result["files_installed"] = (would if dry_run else installed)
-    result["ok"] = failed == 0 and (installed + would) > 0
+    result["distro_files_installed"] = (distro_would if dry_run else distro_installed)
+    result["ok"] = failed == 0 and (distro_installed + distro_would) > 0
 
     if not result["ok"]:
         result["error"] = (
-            f"{failed} file(s) failed; see manifest for details"
-            if failed else "no files were processed"
+            f"{failed} distro file(s) failed; see distro_manifest for details"
+            if failed else "no distro files were processed"
         )
         return result
 
+    kernel_count = result["kernel_files_copied"]
+    distro_count = result["distro_files_installed"]
     if dry_run:
         result["note"] = (
-            f"dry-run: {would} file(s) would be installed onto kernel "
-            f"v{result['kernel_version']} at {home}"
+            f"dry-run: would copy {kernel_count} kernel file(s) from {kernel_src} "
+            f"and lay {distro_count} distro file(s) at {target_home} "
+            f"(kernel v{result['kernel_version']})"
         )
     else:
         result["note"] = (
-            f"installed {installed} file(s) onto kernel "
-            f"v{result['kernel_version']} at {home}. "
-            f"start the organism with: {result['post_install']}"
+            f"hatched {distro_count} distro file(s) over {kernel_count} kernel "
+            f"file(s) at {target_home} (kernel v{result['kernel_version']}). "
+            f"start the hatched organism with: {result['post_install']} "
+            f"— the original brainstem at {source_home} is untouched."
         )
     return result
 
 
 def check() -> dict:
-    """Read-only: is a kernel present, and what's its version?"""
-    home = _brainstem_home()
-    ok, msg = _verify_kernel_present(home)
+    """Read-only: is a source kernel reachable, and where would the hatch land?"""
+    source_home = _default_source_home()
+    target_home = _default_target_home()
+    ok, msg, kernel_src = _verify_kernel_present(source_home)
     return {
         "ok": ok,
-        "brainstem_home": home,
-        "kernel_version": _read_kernel_version(home) if ok else None,
+        "source_home": source_home,
+        "target_home": target_home,
+        "kernel_src": kernel_src,
+        "kernel_version": _read_kernel_version(kernel_src) if kernel_src else None,
         "note": msg,
         "manifest_url": _raw_url(DISTRO_REPO, DEFAULT_BRANCH, "MANIFEST.json"),
+        "target_exists": os.path.isdir(target_home),
     }
 
 
 def status() -> dict:
-    """Report what's already installed locally."""
-    home = _brainstem_home()
-    return {"brainstem_home": home, "checks": _status_local(home)}
+    """Report state at BOTH source_home (should look like grail) and
+    target_home (should look like the hatched rappter organism after install)."""
+    source_home = _default_source_home()
+    target_home = _default_target_home()
+    return {
+        "source_home": source_home,
+        "target_home": target_home,
+        "source_checks": _status_at(source_home),
+        "target_checks": _status_at(target_home),
+    }
 
 
 # ── Agent class ──────────────────────────────────────────────────────────
@@ -575,41 +755,59 @@ class InstallDistroAgent(BasicAgent):
     metadata = {
         "name": "install_rappter_distro",
         "description": (
-            "Install the rappter-distro (organs, senses, lib/, rich UI, "
-            "@rappter agents) on top of the grail brainstem this agent is "
-            "loaded into. Fetches a MANIFEST.json and then each file from "
-            "raw.githubusercontent.com/kody-w/rappter-distro/<branch>/, "
-            "verifies sha256, and lays the files down per install.sh's "
-            "layout. Always run action='check' or action='dry-run' first "
-            "to preview, then action='install' with confirm=true."
+            "Hatch the rappter-distro into its own folder, side-by-side with "
+            "the canonical grail brainstem. Phase 1 copies the kernel src "
+            "tree from source_home (default ~/.brainstem) into target_home "
+            "(default ~/.brainstem-rappter). Phase 2 fetches MANIFEST.json "
+            "and each distro file from raw.githubusercontent.com/kody-w/"
+            "rappter-distro/<branch>/, verifies sha256, and lays them onto "
+            "target_home. The original brainstem is never modified — both "
+            "the bare grail kernel and the hatched rappter organism can "
+            "live in peace. Always run action='check' or action='dry-run' "
+            "first to preview, then action='hatch' with confirm=true."
         ),
         "parameters": {
             "type": "object",
             "properties": {
                 "action": {
                     "type": "string",
-                    "enum": ["check", "status", "dry-run", "install"],
+                    "enum": ["check", "status", "dry-run", "hatch"],
                     "description": (
-                        "'check'   = verify a kernel is present (read-only). "
-                        "'status'  = report what's already installed. "
-                        "'dry-run' = fetch + verify hashes, write nothing. "
-                        "'install' = apply the manifest. Requires confirm=true."
+                        "'check'   = source kernel discovered? where will target land? (read-only). "
+                        "'status'  = state at source_home and target_home. "
+                        "'dry-run' = walk both phases, write nothing. "
+                        "'hatch'   = copy kernel + lay distro. Requires confirm=true."
                     ),
                 },
                 "confirm": {
                     "type": "boolean",
                     "default": False,
                     "description": (
-                        "Required true for action='install'. Without it, "
-                        "install refuses and returns a dry-run preview instead."
+                        "Required true for action='hatch'. Without it, hatch "
+                        "refuses and returns a dry-run preview instead."
                     ),
                 },
                 "branch": {
                     "type": "string",
                     "default": DEFAULT_BRANCH,
                     "description": (
-                        "Git branch of kody-w/rappter-distro to install from. "
-                        f"Defaults to '{DEFAULT_BRANCH}'."
+                        f"Git branch of kody-w/rappter-distro to install from. Defaults to '{DEFAULT_BRANCH}'."
+                    ),
+                },
+                "source_home": {
+                    "type": "string",
+                    "description": (
+                        "Path to the canonical grail brainstem install. "
+                        "Defaults to $BRAINSTEM_HOME or ~/.brainstem. "
+                        "Read-only — never modified."
+                    ),
+                },
+                "target_home": {
+                    "type": "string",
+                    "description": (
+                        "Where to hatch the rappter organism. Defaults to "
+                        "$RAPPTER_HOME or ~/.brainstem-rappter. Created if "
+                        "missing; kernel + distro files land here."
                     ),
                 },
             },
@@ -622,6 +820,8 @@ class InstallDistroAgent(BasicAgent):
         action: str = "check",
         confirm: bool = False,
         branch: str = DEFAULT_BRANCH,
+        source_home: Optional[str] = None,
+        target_home: Optional[str] = None,
         **kwargs,
     ) -> str:
         if action == "check":
@@ -629,21 +829,31 @@ class InstallDistroAgent(BasicAgent):
         if action == "status":
             return json.dumps(status())
         if action == "dry-run":
-            return json.dumps(install_distro(branch=branch, dry_run=True))
-        if action == "install":
+            return json.dumps(install_distro(
+                source_home=source_home, target_home=target_home,
+                branch=branch, dry_run=True,
+            ))
+        # 'install' kept as a back-compat alias for 'hatch'.
+        if action in ("hatch", "install"):
             if not confirm:
-                preview = install_distro(branch=branch, dry_run=True)
+                preview = install_distro(
+                    source_home=source_home, target_home=target_home,
+                    branch=branch, dry_run=True,
+                )
                 return json.dumps({
                     "ok": False,
                     "error": "confirmation required",
-                    "hint": "set confirm=true to proceed with the install",
+                    "hint": "set confirm=true to proceed with the hatch",
                     "preview": preview,
                 })
-            return json.dumps(install_distro(branch=branch, dry_run=False))
+            return json.dumps(install_distro(
+                source_home=source_home, target_home=target_home,
+                branch=branch, dry_run=False,
+            ))
         return json.dumps({
             "ok": False,
             "error": f"unknown action: {action!r}",
-            "valid_actions": ["check", "status", "dry-run", "install"],
+            "valid_actions": ["check", "status", "dry-run", "hatch"],
         })
 
 
@@ -665,6 +875,8 @@ def _main(argv: list[str]) -> int:
     confirm = False
     src = "."
     out_path: Optional[str] = None
+    source_home: Optional[str] = None
+    target_home: Optional[str] = None
     i = 0
     while i < len(argv):
         a = argv[i]
@@ -679,14 +891,15 @@ def _main(argv: list[str]) -> int:
         elif a == "--confirm":
             confirm = True
         elif a == "--branch" and i + 1 < len(argv):
-            branch = argv[i + 1]
-            i += 1
+            branch = argv[i + 1]; i += 1
         elif a == "--src" and i + 1 < len(argv):
-            src = argv[i + 1]
-            i += 1
+            src = argv[i + 1]; i += 1
         elif a == "--out" and i + 1 < len(argv):
-            out_path = argv[i + 1]
-            i += 1
+            out_path = argv[i + 1]; i += 1
+        elif a == "--source-home" and i + 1 < len(argv):
+            source_home = argv[i + 1]; i += 1
+        elif a == "--target-home" and i + 1 < len(argv):
+            target_home = argv[i + 1]; i += 1
         elif a in ("-h", "--help"):
             print(__doc__)
             return 0
@@ -714,12 +927,15 @@ def _main(argv: list[str]) -> int:
         return 0
     if not dry_run and not confirm:
         print(
-            "refusing to install without --confirm. "
-            "(re-run with --dry-run to preview, or add --confirm to apply.)",
+            "refusing to hatch without --confirm. "
+            "(re-run with --dry-run to preview, or add --confirm to hatch.)",
             file=sys.stderr,
         )
         return 2
-    out = install_distro(branch=branch, dry_run=dry_run)
+    out = install_distro(
+        source_home=source_home, target_home=target_home,
+        branch=branch, dry_run=dry_run,
+    )
     print(json.dumps(out, indent=2))
     return 0 if out["ok"] else 1
 
