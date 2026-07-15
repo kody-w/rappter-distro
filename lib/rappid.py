@@ -9,7 +9,7 @@ Format:
     rappid:v2:<kind>:@<publisher>/<slug>:<hash>@<home_vault_url>
 
 Example:
-    rappid:v2:prototype:@rapp/origin:0b635450c04249fbb4b1bdb571044dec@github.com/kody-w/RAPP
+    rappid:@rapp/rapp:9a8f0a4b5a710e20f4d819a0f37d2a4c9f113b5e78fb3c29e70b54fff48a38f9
 
 The species root (the godfather, RAPP itself) lives at the top of the
 tree; every other organism declares parent_rappid pointing to its parent;

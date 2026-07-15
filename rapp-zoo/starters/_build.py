@@ -112,7 +112,7 @@ This is not a chat surface. It's a relationship surface.
     },
 ]
 
-PARENT_RAPPID = "rappid:v2:prototype:@rapp/origin:0b635450c04249fbb4b1bdb571044dec@github.com/kody-w/RAPP"
+PARENT_RAPPID = "rappid:@rapp/rapp:9a8f0a4b5a710e20f4d819a0f37d2a4c9f113b5e78fb3c29e70b54fff48a38f9"
 PARENT_REPO   = "github.com/kody-w/RAPP"
 
 

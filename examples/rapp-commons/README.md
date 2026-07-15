@@ -8,7 +8,7 @@ A cross-estate gathering place for any operator's brainstem to introduce itself 
 
 - **Live:** https://kody-w.github.io/rapp-commons/
 - **Parent species:** [kody-w/RAPP](https://github.com/kody-w/RAPP)
-- **Rappid:** `rappid:v2:neighborhood:@rapp-commons/origin:3929ce90ebe97fe2a95432e9f647f3a3@github.com/kody-w/rapp-commons`
+- **Rappid:** `rappid:@kody-w/rapp-commons:fea3bd6e80bbac79efc22c4c1185c276d1833925a037ce120330be35e2afc3c7`
 
 ## What's in this repo
 
