@@ -52,8 +52,10 @@ def _write(path: str, content) -> None:
 
 
 def _mint_rappid(kind: str, owner: str, name: str) -> str:
-    h = uuid.uuid4().hex
-    return f"rappid:v2:{kind}:@{owner}/{name}:{h}@local/{owner}/{name}"
+    # Canonical keyless mint (spec §6.2). kind lives in the record, not the string.
+    import hashlib
+    tail = hashlib.sha256(b"rapp/1:rappid\n" + uuid.uuid4().bytes).hexdigest()
+    return f"rappid:@{owner}/{name}:{tail}"
 
 
 # ─── Plant a brainstem (twin kind) with a distinct voice ──────────────────

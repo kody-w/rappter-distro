@@ -44,6 +44,7 @@ Stdlib only — must be importable on a fresh venv before any other deps.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import io
 import json
 import os
@@ -59,10 +60,29 @@ from typing import Optional
 
 SCHEMA = "brainstem-egg/2.2-organism"
 SCHEMA_RAPP = "brainstem-egg/2.2-rapplication"
+# Canonical species root (RAPP spec §6.1 consolidated form). The whole species
+# descends from kody-w/rapp; the 64-hex is its fixed identity hash.
 SPECIES_ROOT_RAPPID = (
-    "rappid:v2:prototype:@rapp/origin:"
-    "0b635450c04249fbb4b1bdb571044dec@github.com/kody-w/RAPP"
+    "rappid:@kody-w/rapp:"
+    "9a8f0a4b5a710e20f4d819a0f37d2a4c9f113b5e78fb3c29e70b54fff48a38f9"
 )
+
+
+def _canon_label(s: str, fallback: str) -> str:
+    """Coerce to a canonical §6.1 label: lowercase [a-z0-9] with single internal
+    hyphens, no leading/trailing/double hyphens, no underscores."""
+    s = re.sub(r"[^a-z0-9]+", "-", (s or "").lower()).strip("-")
+    return re.sub(r"-+", "-", s) or fallback
+
+
+def _mint_rappid_keyless(owner: str, slug: str) -> str:
+    """Mint a fresh canonical rappid (spec §6.2, keyless). The tail is
+    ``Hb("rapp/1:rappid", uuid4_bytes)`` — 64 hex, domain-separated — NEVER a
+    hash of the name. Called ONCE per organism, ever."""
+    o = _canon_label(owner, "local")
+    s = _canon_label(slug, "unnamed")
+    tail = hashlib.sha256(b"rapp/1:rappid" + b"\x0a" + uuid.uuid4().bytes).hexdigest()
+    return f"rappid:@{o}/{s}:{tail}"
 
 # Files under brainstem-src that are part of the *organism*, not the
 # *kernel*. The kernel ships defaults at install time; the organism's
@@ -190,11 +210,14 @@ def mint_rappid(home: str, parent_commit: Optional[str] = None) -> dict:
         return existing
 
     uid = uuid.uuid4()
-    uid_compact = uid.hex
     name = _organism_slug()
+    # Canonical keyless mint (spec §6.2). A locally-hatched organism is not yet
+    # published, so it locates under @local/<name>; launch_to_public re-anchors
+    # owner/slug to the real repo (migrate_rappid) while PRESERVING this hash.
+    rappid = _mint_rappid_keyless("local", name)
     data = {
         "schema": "rapp-rappid/2.0",
-        "rappid": f"rappid:v2:hatched:@local/{name}:{uid_compact}",
+        "rappid": rappid,
         "parent_rappid": SPECIES_ROOT_RAPPID,
         "parent_repo": "github.com/kody-w/RAPP",
         "parent_commit": parent_commit or "",
@@ -552,12 +575,24 @@ def pack_rapplication(src: str, rapp_id: str,
     if not os.path.isdir(src):
         raise FileNotFoundError(f"brainstem src not found: {src}")
 
-    # Mint a rapp-scope rappid string. Format mirrors organism rappids
-    # but kind = "rapplication". Hash is sha256(publisher+rapp_id) so
-    # two installs of the same rapp produce the same rappid.
-    import hashlib
-    h = hashlib.sha256(f"{publisher}/{rapp_id}".encode()).hexdigest()[:32]
-    rapp_rappid = f"rappid:v2:rapplication:{publisher}/{rapp_id}:{h}"
+    # Rapp-scope identity (canonical spec §6.1). The rappid is minted ONCE
+    # (keyless, spec §6.2) and PERSISTED next to the rapp's state so re-packs
+    # reuse the SAME identity — never re-derived from the name (a name-hash is
+    # the cardinal-sin identity forbidden by the spec). Location @<pub>/<rapp_id>.
+    _rapp_id_home = os.path.join(src, ".brainstem_data", rapp_id, "rappid.json")
+    _existing = _read_json(_rapp_id_home)
+    if _existing and isinstance(_existing.get("rappid"), str) \
+            and _existing["rappid"].startswith("rappid:@"):
+        rapp_rappid = _existing["rappid"]
+    else:
+        rapp_rappid = _mint_rappid_keyless(publisher.lstrip("@"), rapp_id)
+        try:
+            os.makedirs(os.path.dirname(_rapp_id_home), exist_ok=True)
+            _write_json(_rapp_id_home, {"schema": "rapp-rappid/2.0",
+                                        "rappid": rapp_rappid, "kind": "rapplication",
+                                        "rapp_id": rapp_id, "publisher": publisher})
+        except OSError:
+            pass  # read-only src — identity still travels in the egg's rappid.json
 
     counts = {"agent": 0, "organ": 0, "ui": 0, "data": 0, "soul": 0}
     buf = io.BytesIO()

@@ -69,7 +69,7 @@ def _read_operator_rappid() -> tuple[str, str]:
         d = json.loads(_RAPPID_FILE.read_text())
         rappid = d.get("rappid", "")
         github = d.get("github", "")
-        if not github and rappid.startswith("rappid:v2:"):
+        if not github and ":@" in rappid:  # self-locating (canonical §6.1)
             try:
                 github = rappid.split(":@", 1)[1].split("/", 1)[0]
             except Exception:

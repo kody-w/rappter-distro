@@ -571,14 +571,15 @@
   }
 
   function deriveDisplayName(manifest) {
-    const r = manifest.rappid || '';
+    const r = String(manifest.rappid || '');
     if (manifest.name) return String(manifest.name);
-    // rappid format: rappid:v2:<kind>:<owner>/<name>:<short>
-    const parts = String(r).split(':');
-    if (parts.length >= 4) {
-      let np = parts[3];
-      if (np.includes('/')) np = np.split('/', 2)[1];
-      if (np) return np;
+    // Canonical rappid (spec §6.1): rappid:@<owner>/<slug>:<64hex> — the slug
+    // is the display name. Everything after ':@', before the ':<hash>'.
+    const at = r.split(':@')[1];
+    if (at) {
+      const loc = at.split(':', 1)[0];            // <owner>/<slug>
+      const slug = loc.includes('/') ? loc.split('/')[1] : loc;
+      if (slug) return slug;
     }
     return r || 'unnamed';
   }

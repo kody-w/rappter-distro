@@ -486,9 +486,9 @@ def _self_check() -> dict:
         for path, content in bundle.items():
             if len(content) < 200:
                 issues.append(f"kind={kind}: {path} too short ({len(content)} bytes)")
-        # SPEC.md must mention rappid v2 and the door URL set
+        # SPEC.md must document the canonical rappid form and the door URL set
         spec = bundle.get("specs/SPEC.md", "")
-        for needle in ("rappid:v2:", "raw.githubusercontent.com", "door_from_rappid"):
+        for needle in ("rappid:@", "raw.githubusercontent.com", "door_from_rappid"):
             if needle not in spec:
                 issues.append(f"SPEC.md missing required mention: {needle!r}")
         # skill.md must mention the GitHub-account-only requirement

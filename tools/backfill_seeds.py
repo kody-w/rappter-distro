@@ -144,13 +144,21 @@ def _put_file(owner: str, repo: str, path: str, content_bytes: bytes,
     return False, f"PUT failed: {err.strip()[:160]}"
 
 
-def _canonical_rappid(owner: str, repo: str, kind: str) -> str:
-    """Mint the canonical rappid for an (owner, repo, kind).
+def _canonical_rappid(owner: str, repo: str, kind: str = None) -> str:
+    """Mint a canonical rappid for an (owner, repo) — RAPP spec §6.2, keyless.
 
-    Per SPEC §2.3: hex = BLAKE2b(owner/repo, 16).hexdigest() — deterministic.
+    `rappid:@<owner>/<slug>:<64hex>` where owner/repo locate the door and the
+    64-hex tail is ``Hb("rapp/1:rappid", uuid4_bytes)`` — domain separated,
+    minted once. It is NEVER ``blake2b/sha256("owner/repo")``: hashing a name
+    into an address is the cardinal sin the spec exists to end (owner/slug in
+    the string already locate the door; the hash is identity, not a name digest).
+    `kind` lives in the rappid.json record, not the string, and is ignored here.
+    Callers are idempotent via the stored rappid.json (mint-once), so a fresh
+    random tail per un-minted repo is correct.
     """
-    hex32 = hashlib.blake2b(f"{owner}/{repo}".encode(), digest_size=16).hexdigest()
-    return f"rappid:v2:{kind}:@{owner}/{repo}:{hex32}@github.com/{owner}/{repo}"
+    import uuid
+    tail = hashlib.sha256(b"rapp/1:rappid\n" + uuid.uuid4().bytes).hexdigest()
+    return f"rappid:@{owner}/{repo}:{tail}"
 
 
 def _build_rappid_json(rappid: str, owner: str, repo: str, kind: str,

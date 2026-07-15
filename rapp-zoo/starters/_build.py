@@ -16,10 +16,13 @@ shipped — the brainstem's defaults stay in place; the soul changes
 how the organism speaks.
 
 Each starter has a stable rappid so re-hatching the same starter on a
-second machine recognizes it as the same lineage. The hash segment is
-deterministic from the starter id, NOT random — so re-running this
-script produces byte-identical eggs (modulo the exported_at
-timestamp).
+second machine recognizes it as the same lineage. That stability comes
+from a FROZEN canonical rappid per starter (STARTER_RAPPIDS below) —
+each minted once, keyless (spec §6.2, ``Hb("rapp/1:rappid", uuid4)``),
+then pinned as a constant. It is NOT a hash of the starter name (a
+name-hash address is the cardinal sin the spec exists to end). Re-running
+this script produces byte-identical eggs (modulo the exported_at
+timestamp) because the identity is a constant, not a fresh mint.
 """
 from __future__ import annotations
 
@@ -112,16 +115,23 @@ This is not a chat surface. It's a relationship surface.
     },
 ]
 
-PARENT_RAPPID = "rappid:@rapp/rapp:9a8f0a4b5a710e20f4d819a0f37d2a4c9f113b5e78fb3c29e70b54fff48a38f9"
+# Canonical species root (spec §6.1): the whole species descends from kody-w/rapp.
+PARENT_RAPPID = "rappid:@kody-w/rapp:9a8f0a4b5a710e20f4d819a0f37d2a4c9f113b5e78fb3c29e70b54fff48a38f9"
 PARENT_REPO   = "github.com/kody-w/RAPP"
+
+# FROZEN canonical rappids — one per starter, each minted ONCE (keyless, spec
+# §6.2), then pinned so every machine hatching the same starter egg shares the
+# same lineage identity. NEVER a hash of the starter name.
+STARTER_RAPPIDS = {
+    "workday": "rappid:@rapp-zoo/workday:0432ad95c7e1e7493230655d3e06aa335206672dcfeb86a9ad424361747220e6",
+    "playtime": "rappid:@rapp-zoo/playtime:237964f2475da9dabebf6ebdf808fab3407c4ce62b5c3ed908b15c00cdd5f2a5",
+    "journal": "rappid:@rapp-zoo/journal:d82ab35f6c1eebb319585a6ae1259570281bdc7d8f0fb80c9832c46329840f81",
+}
 
 
 def starter_rappid(sid: str) -> str:
-    """Deterministic rappid per starter id. Same input → same hash →
-    every machine that hatches workday.egg gets the same rappid, so
-    they recognize each other as the same organism in the lineage."""
-    h = hashlib.sha256(("rapp-zoo-starter:" + sid).encode("utf-8")).hexdigest()[:32]
-    return f"rappid:v2:starter:@rapp/{sid}:{h}"
+    """The frozen canonical rappid for a starter id (see STARTER_RAPPIDS)."""
+    return STARTER_RAPPIDS[sid]
 
 
 def build_egg(starter: dict) -> bytes:

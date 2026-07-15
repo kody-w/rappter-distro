@@ -82,11 +82,12 @@ def import_egg(egg_path: str, seed_path: Path = _SEED_PATH) -> dict:
             return {"ok": False, "error": f"rappid.json malformed: {e}"}
 
         rappid = rappid_meta.get("rappid", "")
-        if not rappid.startswith("rappid:v2:"):
-            return {"ok": False, "error": f"egg's rappid.json has no v2 rappid: {rappid[:60]}"}
+        if ":@" not in rappid:
+            return {"ok": False, "error": f"egg's rappid.json has no self-locating rappid: {rappid[:60]}"}
 
-        # Derive the peer's handle from the rappid (Article XLVI parser would
-        # be nicer but stdlib-only here; safe inline parse)
+        # Derive the peer's handle from the rappid. The self-locating segment is
+        # `:@<owner>/<slug>` in the canonical form (spec §6.1); stdlib-only inline
+        # parse (Article XLVI parser would be nicer but this must stay dep-free).
         try:
             handle = rappid.split(":@", 1)[1].split("/", 1)[0]
         except Exception:

@@ -115,7 +115,7 @@ def _try_local_brainstem() -> str:
     try:
         d = json.loads(p.read_text())
         rappid = d.get("rappid", "")
-        if isinstance(rappid, str) and rappid.startswith("rappid:v2:"):
+        if isinstance(rappid, str) and ":@" in rappid:  # self-locating (canonical §6.1)
             return rappid
     except Exception:
         pass
@@ -136,18 +136,19 @@ def _try_conventional_repos(handle: str) -> str:
         if not d:
             continue
         rappid = d.get("rappid", "")
-        if not isinstance(rappid, str) or not rappid.startswith("rappid:v2:"):
+        if not isinstance(rappid, str) or ":@" not in rappid:  # self-locating (canonical §6.1)
             continue
-        # Validate; derive operator rappid by swapping kind token
+        # Validate the string; kind lives in the RECORD now (canonical §6.1),
+        # not the rappid string — so read d["kind"], never munge the string.
         try:
-            door = door_from_rappid(rappid)
+            door_from_rappid(rappid)
         except InvalidRappidError:
             continue
-        if door["kind"] == "operator":
+        record_kind = d.get("kind")
+        if record_kind in ("operator", "twin"):
+            # A twin record's rappid IS a valid identity and doubles as the
+            # operator's front door — return it as-is (no fabricated operator id).
             return rappid
-        if door["kind"] == "twin":
-            # Same owner/repo/hex, different kind token
-            return rappid.replace(":twin:", ":operator:", 1)
     return ""
 
 
@@ -169,13 +170,14 @@ def _scan_handle_for_operator(handle: str) -> str:
         if not isinstance(rappid, str):
             continue
         try:
-            door = door_from_rappid(rappid)
+            door_from_rappid(rappid)
         except InvalidRappidError:
             continue
-        if door["kind"] == "operator":
+        record_kind = d.get("kind")  # kind lives in the record, not the string
+        if record_kind == "operator":
             return rappid
-        if door["kind"] == "twin" and (handle in name or name in ("twin", "brainstem")):
-            return rappid.replace(":twin:", ":operator:", 1)
+        if record_kind == "twin" and (handle in name or name in ("twin", "brainstem")):
+            return rappid
     return ""
 
 

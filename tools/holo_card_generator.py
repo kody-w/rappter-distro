@@ -440,7 +440,7 @@ def generate_holo_card(rappid: str, kind: str, owner: str, name: str,
 
 def _self_check() -> dict:
     issues = []
-    test_rappid = "rappid:v2:neighborhood:@test/example:abc123def456@github.com/test/example"
+    test_rappid = "rappid:@test/example:abc123def4560000abc123def4560000abc123def4560000abc123def4560000"
     seed_a = derive_seed(test_rappid)
     seed_b = derive_seed(test_rappid)
     if seed_a != seed_b:
