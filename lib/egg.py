@@ -811,7 +811,7 @@ def pack_twin_from_repo(repo_path: str,
         manifest = {
             "schema": EGG_SCHEMA_V2_1,
             "type": "twin",
-            "rappid": rj.get("name") and f"rappid:twin:@source/{rj['name']}:{secrets.token_hex(8)}" or None,
+            "rappid": rappid_uuid,  # the source twin's real canonical rappid (never mint a fresh sibling)
             "exported_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "source": {
                 "rappid_uuid": rappid_uuid,
