@@ -1185,9 +1185,9 @@ async function compose() {
   if (!state.identity) { log('no identity — cannot post', 'err'); return; }
   if (!state.identity.rappid) {
     banner('Bind your identity to a rappid first. Mint one at <code>tools/door_address.py</code> in the parent RAPP repo and paste it below, or accept the auto-generated one.', 'warn');
-    const auto = prompt('Paste your v2 rappid (or leave blank for a local-only test rappid):',
+    const auto = prompt('Paste your rappid (or leave blank for a local-only test rappid):',
                         '');
-    const rappid = auto.trim() || ('rappid:v2:operator:@local/test:' + state.identity.fingerprint.slice(0,32) + '@local/tether');
+    const rappid = auto.trim() || ('rappid:@local/tether-test:' + state.identity.fingerprint);
     bindIdentityToRappid(rappid);
   }
 
@@ -1493,7 +1493,7 @@ function closeRapp() {
 const tphoneCall = { startedAt: 0, durTimer: 0 };
 
 function parseNbhdCoords(rappid) {
-  // rappid:v2:<kind>:<ns>:<hash>@<host>/<owner>/<repo>
+  // canonical: rappid:@<owner>/<slug>:<64-hex>
   const m = (rappid || '').match(/@[^/]+\/([^/]+)\/(.+)$/);
   if (!m) return null;
   return { owner: m[1], repo: m[2] };
@@ -2126,7 +2126,7 @@ const startScanner    = async () => { /* no-op: camera is now on-demand via the 
 // a Cloudflare-Worker doorman akin to the vbrainstem ?copilot=1 pattern).
 //
 // What we mint:
-//   - Operator rappid: rappid:v2:twin:@<handle>/twin:<hash>@github.com/<handle>/twin
+//   - Operator rappid: rappid:@<handle>/twin:<64-hex>  (canonical §6.1)
 //   - Convention: every operator's twin lives at <handle>/twin globally —
 //     namespace (@<handle>/twin) and repo name (twin) match so the lookup
 //     is uniform and tethers can dial @<handle>'s twin without ambiguity.
@@ -2221,16 +2221,23 @@ async function ghMe(pat) {
 
 // JS BLAKE2b is non-trivial without a library. We use Web Crypto SHA-256
 // truncated to 32 hex chars as the deterministic operator-hash for the
-// initial mint when no front door exists yet. Not canonical (the SDK uses
-// BLAKE2b); we'll align via noble-hashes CDN in a follow-up. EXISTING
+// initial mint when no front door exists yet — canonical §6.2 keyed mint
+// (domain-separated SHA-256 over the operator's public key). EXISTING
 // twins already-planted use whatever hash is in their rappid.json, which
 // the tether respects via lookupOrMintRappid below.
 async function operatorHash(handle) {
-  const seed = handle.toLowerCase() + ':twin:genesis';
-  const buf  = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(seed));
+  // Canonical keyed mint (spec §6.2): domain-separated SHA-256 over the
+  // operator's PUBLIC KEY — full 64 hex, never a hash of the name. owner/slug
+  // in the rappid string already locate the door; this tail is identity.
+  const keyBytes = state.identity && state.identity.pubJwk
+    ? new TextEncoder().encode(JSON.stringify(state.identity.pubJwk))
+    : crypto.getRandomValues(new Uint8Array(16));   // keyless fallback (§6.2)
+  const tag = new TextEncoder().encode('rapp/1:rappid\n');
+  const seed = new Uint8Array(tag.length + keyBytes.length);
+  seed.set(tag, 0); seed.set(keyBytes, tag.length);
+  const buf = await crypto.subtle.digest('SHA-256', seed);
   return Array.from(new Uint8Array(buf))
-    .slice(0, 16)
-    .map(b => b.toString(16).padStart(2, '0')).join('');
+    .map(b => b.toString(16).padStart(2, '0')).join('');   // full 64 hex
 }
 
 // Default-mint (used only when no front door exists yet). Convention:
@@ -2238,7 +2245,7 @@ async function operatorHash(handle) {
 // repo name match so the lookup is uniform.
 async function defaultMintRappid(handle) {
   const hash = await operatorHash(handle);
-  return `rappid:v2:twin:@${handle}/twin:${hash}@github.com/${handle}/twin`;
+  return `rappid:@${handle}/twin:${hash}`;
 }
 
 // CANONICAL resolution: always try the front door first.
@@ -2251,7 +2258,7 @@ async function lookupOrMintRappid(handle) {
     const r = await fetch(url, { cache: 'no-cache' });
     if (r.ok) {
       const data = await r.json();
-      if (data.rappid && /^rappid:v2:/.test(data.rappid)) {
+      if (data.rappid && /^rappid:@/.test(data.rappid)) {
         log(`rappid resolved from front door · ${url}`, 'ok');
         return { rappid: data.rappid, source: 'front-door', frontDoorRappid: data };
       }
@@ -2642,7 +2649,7 @@ function buildGrailFor(handle, rappid) {
       host:      'github.com',
       owner:     handle,
       repo:      'twin',
-      parent_rappid: 'rappid:@rapp/rapp:9a8f0a4b5a710e20f4d819a0f37d2a4c9f113b5e78fb3c29e70b54fff48a38f9',
+      parent_rappid: 'rappid:@kody-w/rapp:9a8f0a4b5a710e20f4d819a0f37d2a4c9f113b5e78fb3c29e70b54fff48a38f9',
       minted_at: now,
       notes:     `Twin for @${handle}. Convention: every operator's twin lives at <handle>/twin (namespace and repo name match for uniform global lookup). Planted via the RAPP public tether — the operator's permanent global address per Article XLVI, travels across every neighborhood they join.`,
     }, null, 2),
