@@ -145,18 +145,21 @@ missing = [k for k in required if k not in d]
 if missing:
     print("FAIL  rappid.json missing keys:", missing)
     sys.exit(1)
-SPECIES_ROOT_V2 = "rappid:v2:prototype:@rapp/origin:0b635450c04249fbb4b1bdb571044dec@github.com/kody-w/RAPP"
+SPECIES_ROOT = "rappid:@kody-w/rapp:9a8f0a4b5a710e20f4d819a0f37d2a4c9f113b5e78fb3c29e70b54fff48a38f9"
+import re
+# RAPP §6.1 grammar: rappid:@<owner>/<slug>:<64hex>, owner/slug lowercase alnum + single hyphens
+RAPPID_RE = re.compile(r"^rappid:@[a-z0-9]+(?:-[a-z0-9]+)*/[a-z0-9]+(?:-[a-z0-9]+)*:[0-9a-f]{64}$")
 checks = [
-    (d["schema"] == "rapp-rappid/2.0",       "schema is rapp-rappid/2.0"),
+    (d["schema"] == "rapp/1",                "schema is rapp/1 (§12)"),
     (d["kind"] == "mirror",                  "kind is mirror"),
     (d["name"] == "testmirror",              "name matches dry-run input"),
     (d["display_name"] == "Test Mirror",     "display_name matches input"),
     (d["planted_by"] == "testuser",          "planted_by matches input"),
     (d["kernel_version"] == "0.6.0",         "kernel_version is 0.6.0"),
-    (d["parent_rappid"] == SPECIES_ROOT_V2,  "parent_rappid is species root v2 string"),
-    (d["rappid"].startswith("rappid:v2:"),   "rappid is v2-format string"),
-    (d["rappid"].count(":") >= 4,            "rappid has the v2 separator structure"),
-    (d["rappid"].count("@") == 2,            "rappid has 2 @ separators (kind:@pub/slug:hash@host)"),
+    (d["parent_rappid"] == SPECIES_ROOT,     "parent_rappid is canonical §6.1 species root"),
+    (bool(RAPPID_RE.match(d["rappid"])),     "rappid matches §6.1 grammar (rappid:@owner/slug:64hex)"),
+    (d["rappid"].count("@") == 1,            "rappid has exactly one @ (no v2 host suffix)"),
+    (":v2:" not in d["rappid"],              "rappid is NOT a legacy v2 string"),
 ]
 for ok_, desc in checks:
     print(("PASS" if ok_ else "FAIL") + "  " + desc)

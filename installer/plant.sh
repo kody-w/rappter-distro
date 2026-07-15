@@ -27,12 +27,11 @@ set -e
 # ── constants ─────────────────────────────────────────────────────────
 GRAIL_REPO="kody-w/rapp-installer"
 GRAIL_RAW="https://raw.githubusercontent.com/${GRAIL_REPO}/main"
-# Species root v2-format rappid — the canonical identifier for kody-w/RAPP
-# per CONSTITUTION Article XXXIV.1 (2026-04-30 ratification). The legacy
-# UUID 0b635450-c042-49fb-b4b1-bdb571044dec is preserved as the hash field
-# (dashes stripped) per the documented migration rule — same identity, new
-# string representation.
-SPECIES_ROOT_RAPPID="rappid:v2:prototype:@rapp/origin:0b635450c04249fbb4b1bdb571044dec@github.com/kody-w/RAPP"
+# Species root rappid — the canonical §6.1 identifier for kody-w/RAPP.
+# `rappid:@<owner>/<slug>:<64hex>` — the 64-hex tail is a domain-separated
+# mint, NOT a name digest (kind lives in the record, not the string). This is
+# the one true species root every planted door points its parent_rappid at.
+SPECIES_ROOT_RAPPID="rappid:@kody-w/rapp:9a8f0a4b5a710e20f4d819a0f37d2a4c9f113b5e78fb3c29e70b54fff48a38f9"
 
 KERNEL_FILES=(
     "rapp_brainstem/brainstem.py"
@@ -129,14 +128,22 @@ print(' '.join(p.capitalize() for p in parts))
 
 # ── identity ──────────────────────────────────────────────────────────
 # mint_rappid <gh_user> <repo_name> <kind>
-# Mints a v2-format rappid string per CONSTITUTION Article XXXIV.1.
-# Schema: rappid:v2:<kind>:@<gh_user>/<repo_name>:<hash>@github.com/<gh_user>/<repo_name>
-# Hash is a fresh UUIDv4 with dashes stripped (32 hex chars).
+# Mints a canonical RAPP §6.1 rappid: `rappid:@<owner>/<slug>:<64hex>`.
+# owner/slug are canonicalized to the grammar [a-z0-9]+(-[a-z0-9]+)* and the
+# 64-hex tail is Hb("rapp/1:rappid", uuid4_bytes) = sha256(b"rapp/1:rappid\n"
+# + uuid4.bytes) — a domain-separated keyless mint, NEVER sha256(name). `kind`
+# lives in the rappid.json record, not the string, so it is not encoded here.
 mint_rappid() {
     local gh_user="${1:-anon}" repo_name="${2:-unknown}" kind="${3:-mirror}"
-    local hash
-    hash="$(python3 -c "import uuid; print(uuid.uuid4().hex)")"
-    echo "rappid:v2:${kind}:@${gh_user}/${repo_name}:${hash}@github.com/${gh_user}/${repo_name}"
+    python3 -c "
+import uuid, hashlib, re, sys
+def canon(s):
+    s = re.sub(r'[^a-z0-9]+', '-', s.lower()).strip('-')
+    return s or 'x'
+owner, slug = canon(sys.argv[1]), canon(sys.argv[2])
+tail = hashlib.sha256(b'rapp/1:rappid\n' + uuid.uuid4().bytes).hexdigest()
+print(f'rappid:@{owner}/{slug}:{tail}')
+" "$gh_user" "$repo_name"
 }
 now_iso()     { date -u +"%Y-%m-%dT%H:%M:%SZ"; }
 
@@ -381,7 +388,7 @@ write_rappid_json() {
     python3 - <<'PYEOF'
 import os, json, pathlib
 data = {
-    "schema": "rapp-rappid/2.0",
+    "schema": "rapp/1",
     "rappid": os.environ["PLANT_RAPPID"],
     "kind": os.environ.get("PLANT_KIND") or "mirror",
     "name": os.environ["PLANT_REPO_NAME"],

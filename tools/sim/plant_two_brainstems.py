@@ -69,7 +69,7 @@ def plant_brainstem(directory: str, name: str, display_name: str,
 
     # 1. rappid.json
     _write(os.path.join(directory, "rappid.json"), json.dumps({
-        "schema":         "rapp-rappid/2.0",
+        "schema":         "rapp/1",
         "rappid":         rappid_str,
         "kind":           "twin",
         "name":           name,
@@ -184,7 +184,7 @@ def plant_local_neighborhood(directory: str, name: str, display_name: str) -> di
 
     # rappid + neighborhood + members
     _write(os.path.join(directory, "rappid.json"), json.dumps({
-        "schema": "rapp-rappid/2.0", "rappid": rappid_str, "kind": "neighborhood",
+        "schema": "rapp/1", "rappid": rappid_str, "kind": "neighborhood",
         "name": name, "display_name": display_name,
         "github": f"local://{name}", "url": f"local://{name}/",
         "parent_rappid": None, "parent_repo": "https://github.com/kody-w/RAPP",

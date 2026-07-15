@@ -216,7 +216,7 @@ def mint_rappid(home: str, parent_commit: Optional[str] = None) -> dict:
     # owner/slug to the real repo (migrate_rappid) while PRESERVING this hash.
     rappid = _mint_rappid_keyless("local", name)
     data = {
-        "schema": "rapp-rappid/2.0",
+        "schema": "rapp/1",
         "rappid": rappid,
         "parent_rappid": SPECIES_ROOT_RAPPID,
         "parent_repo": "github.com/kody-w/RAPP",
@@ -588,7 +588,7 @@ def pack_rapplication(src: str, rapp_id: str,
         rapp_rappid = _mint_rappid_keyless(publisher.lstrip("@"), rapp_id)
         try:
             os.makedirs(os.path.dirname(_rapp_id_home), exist_ok=True)
-            _write_json(_rapp_id_home, {"schema": "rapp-rappid/2.0",
+            _write_json(_rapp_id_home, {"schema": "rapp/1",
                                         "rappid": rapp_rappid, "kind": "rapplication",
                                         "rapp_id": rapp_id, "publisher": publisher})
         except OSError:
@@ -600,7 +600,7 @@ def pack_rapplication(src: str, rapp_id: str,
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
         # Identity
         identity = {
-            "schema": "rapp-rappid/2.0",
+            "schema": "rapp/1",
             "rappid": rapp_rappid,
             "parent_rappid": parent_rappid or SPECIES_ROOT_RAPPID,
             "kind": "rapplication",

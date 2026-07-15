@@ -164,7 +164,7 @@ def _canonical_rappid(owner: str, repo: str, kind: str = None) -> str:
 def _build_rappid_json(rappid: str, owner: str, repo: str, kind: str,
                        display_name: str, parent_rappid: str | None = None) -> bytes:
     return (json.dumps({
-        "schema": "rapp-rappid/2.0",
+        "schema": "rapp/1",
         "rappid": rappid,
         "kind": kind,
         "name": repo,

@@ -160,8 +160,8 @@ def check_antipatterns(twins: list[dict], neighborhoods: list[dict],
                 if phrase in soul:
                     violations.append(f"twin {t['name']!r}: soul.md contains forbidden fallback {phrase!r}")
         rj = _read_json(os.path.join(t["dir"], "rappid.json"))
-        if rj.get("schema") == "rapp-rappid/1.1":
-            violations.append(f"twin {t['name']!r}: rappid.json still on legacy schema rapp-rappid/1.1 (should be 2.0)")
+        if rj.get("schema") not in ("rapp/1", None):
+            violations.append(f"twin {t['name']!r}: rappid.json schema {rj.get('schema')!r} not 'rapp/1' (§12; the rapp-rappid/* labels were migrated out)")
         # Card schema
         card_path = os.path.join(t["dir"], "card.json")
         if os.path.exists(card_path):

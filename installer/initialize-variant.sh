@@ -37,8 +37,8 @@ fi
 
 # ── Identity (hardcoded — single-parent rule) ────────────────────────────
 
-# Species root v2-format rappid per CONSTITUTION Article XXXIV.1.
-PARENT_RAPPID="rappid:v2:prototype:@rapp/origin:0b635450c04249fbb4b1bdb571044dec@github.com/kody-w/RAPP"
+# Canonical §6.1 species root for kody-w/RAPP (parent of every variant).
+PARENT_RAPPID="rappid:@kody-w/rapp:9a8f0a4b5a710e20f4d819a0f37d2a4c9f113b5e78fb3c29e70b54fff48a38f9"
 PARENT_REPO="https://github.com/kody-w/RAPP.git"
 
 # ── Freshness check via lineage_check.py ─────────────────────────────────
@@ -95,14 +95,23 @@ VARIANT_NAME="${VARIANT_NAME:-$DEFAULT_NAME}"
 
 # ── Generate rappid ──────────────────────────────────────────────────────
 
-# v2-format rappid per CONSTITUTION Article XXXIV.1. UUID hex (dashes
-# stripped) as hash; pub/slug derived from this repo's git remote.
+# Canonical §6.1 rappid: rappid:@<owner>/<slug>:<64hex>. owner/slug derived
+# from this repo's git remote (canonicalized to the grammar); the 64-hex tail
+# is Hb("rapp/1:rappid", uuid4) — a keyless domain-separated mint, never a
+# name digest. `kind` lives in the rappid.json record, not the string.
 _VAR_OWNER="$(git config --get remote.origin.url 2>/dev/null | sed -nE 's#.*[/:]([^/]+)/[^/]+(\.git)?$#\1#p')"
 _VAR_OWNER="${_VAR_OWNER:-anon}"
 _VAR_REPO="$(git config --get remote.origin.url 2>/dev/null | sed -nE 's#.*/([^/]+)\.git$#\1#p; s#.*/([^/]+)$#\1#p' | head -1)"
 _VAR_REPO="${_VAR_REPO:-$VARIANT_NAME}"
-_VAR_HASH="$(python3 -c "import uuid; print(uuid.uuid4().hex)")"
-NEW_RAPPID="rappid:v2:variant:@${_VAR_OWNER}/${_VAR_REPO}:${_VAR_HASH}@github.com/${_VAR_OWNER}/${_VAR_REPO}"
+NEW_RAPPID="$(python3 -c "
+import uuid, hashlib, re, sys
+def canon(s):
+    s = re.sub(r'[^a-z0-9]+', '-', s.lower()).strip('-')
+    return s or 'x'
+owner, slug = canon(sys.argv[1]), canon(sys.argv[2])
+tail = hashlib.sha256(b'rapp/1:rappid\n' + uuid.uuid4().bytes).hexdigest()
+print(f'rappid:@{owner}/{slug}:{tail}')
+" "$_VAR_OWNER" "$_VAR_REPO")"
 NOW="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 PARENT_COMMIT="$(curl -fsSL "https://api.github.com/repos/kody-w/RAPP/commits/main" 2>/dev/null \
@@ -128,7 +137,7 @@ data["parent_commit"] = parent_commit or None
 data["born_at"] = born_at
 data["name"] = name
 data["role"] = "variant"
-data["schema"] = "rapp-rappid/2.0"
+data["schema"] = "rapp/1"
 # attestation resets because the new rappid hasn't been attested yet.
 data["attestation"] = None
 
