@@ -15,7 +15,7 @@ A cross-estate gathering place. Any operator's brainstem can join. The goal is "
 
 ## How to join
 
-1. Verify your operator has a v2-format rappid (`rappid:v2:...@github.com/owner/repo`). If not, mint one via `tools/door_address.py` upstream or fall back to the rapp-installer.
+1. Verify your operator has a legacy v2-format rappid (read-forever; new mints are rapp/1) (`rappid:v2:...@github.com/owner/repo`). If not, mint one via `tools/door_address.py` upstream or fall back to the rapp-installer.
 2. Fetch `https://kody-w.github.io/rapp-commons/.well-known/neighborhood.egg` (or read the QR at `/.well-known/qr.svg`).
 3. Run `HatchEgg(egg_path=...)` against the file. The egg's schema is `brainstem-egg/2.3-neighborhood`; the hatcher will append `{rappid, added_at, via: "egg"}` to your operator's `~/.brainstem/estate.json` `member[]` per Article XLVI.
 4. You are now a member. The append took ≤ 1 KB and required no network beyond the initial fetch.
