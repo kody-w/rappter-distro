@@ -60,6 +60,86 @@ from typing import Optional
 
 SCHEMA = "brainstem-egg/2.2-organism"
 SCHEMA_RAPP = "brainstem-egg/2.2-rapplication"
+
+# ── §9 rapp/1-egg packing (stdlib-only, inlined from kody-w/rapp-1 · rapp.py) ──
+EGG_SCHEMA = "rapp/1-egg"
+
+def _egg_canonical(v):
+    if v is None or isinstance(v, bool) or isinstance(v, int):
+        return json.dumps(v)
+    if isinstance(v, float):
+        raise ValueError("no floats in egg manifest")
+    if isinstance(v, str):
+        return json.dumps(v, ensure_ascii=False)
+    if isinstance(v, list):
+        return "[" + ",".join(_egg_canonical(x) for x in v) + "]"
+    if isinstance(v, dict):
+        ks = sorted(v.keys())
+        return "{" + ",".join(json.dumps(k, ensure_ascii=False) + ":" + _egg_canonical(v[k]) for k in ks) + "}"
+    raise ValueError(f"uncanonicalizable: {type(v)}")
+
+def _egg_hb(space, b):
+    return hashlib.sha256(space.encode() + b"\x0a" + b).hexdigest()
+
+def _now_iso_ms():
+    from datetime import datetime, timezone
+    n = datetime.now(timezone.utc)
+    return n.strftime("%Y-%m-%dT%H:%M:%S.") + f"{n.microsecond // 1000:03d}Z"
+
+class _EggCollector:
+    """Drop-in for a ZipFile handle: captures file octets + the legacy manifest dict."""
+    def __init__(self): self.files = {}; self.meta = {}
+    def __enter__(self): return self
+    def __exit__(self, *a): return False
+    def writestr(self, name, data):
+        octets = data.encode("utf-8") if isinstance(data, str) else data
+        if name == "manifest.json":
+            self.meta = json.loads(octets); return
+        self.files[name] = octets
+    def write(self, filename, arcname):
+        with open(filename, "rb") as _fh:
+            self.files[arcname] = _fh.read()
+
+def _pack_v9(variant, rappid, created_utc, files, payload):
+    """Byte-reproducible §9 rapp/1-egg (ZIP stored). Mirrors rapp.pack_egg."""
+    contents = sorted(({"path": p, "hash": _egg_hb("rapp/1:egg", o)} for p, o in files.items()),
+                      key=lambda c: c["path"].encode("utf-8"))
+    manifest = {"schema": EGG_SCHEMA, "variant": variant, "rappid": rappid,
+                "created_utc": created_utc, "contents": contents, "payload": payload or {}, "sig": None}
+    man = _egg_canonical(manifest).encode("utf-8")
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_STORED) as z:
+        def _w(name, d):
+            zi = zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0))
+            zi.compress_type = zipfile.ZIP_STORED; zi.flag_bits |= 0x800
+            z.writestr(zi, d)
+        _w("manifest.json", man)
+        for c in contents:
+            _w(c["path"], files[c["path"]])
+    return buf.getvalue()
+
+def _finalize_egg(z, variant):
+    """Build a §9 egg from a collector: legacy meta → payload; rappid from the record."""
+    meta = z.meta
+    rappid = meta.get("rappid")
+    files = dict(z.files)
+    if variant == "organism":
+        files.setdefault("soul.md", b"# soul\n")
+    if variant == "rapplication":
+        # §9 requires exactly one root agent.py; promote the primary agent from agents/.
+        af = meta.get("agent_filename")
+        cand = ("agents/" + af) if af and ("agents/" + af) in files else                next((n for n in sorted(files) if n.endswith("_agent.py") or n.endswith("agent.py")), None)
+        if cand:
+            files["agent.py"] = files.pop(cand)
+        for n in [n for n in list(files) if "/" not in n and n.endswith(".py") and n != "agent.py"]:
+            files["src/" + n] = files.pop(n)
+        if not any(n == "agent.py" for n in files):
+            variant = "organism"; files.setdefault("soul.md", b"# soul\n")
+    payload = {k: v for k, v in meta.items()
+               if k not in ("schema", "type", "rappid", "exported_at", "created_utc")}
+    return _pack_v9(variant, rappid, _now_iso_ms(), files, payload)
+
+
 # Canonical species root (RAPP spec §6.1 consolidated form). The whole species
 # descends from kody-w/rapp; the 64-hex is its fixed identity hash.
 SPECIES_ROOT_RAPPID = (
@@ -362,7 +442,7 @@ def pack_organism(home: str, src: str, kernel_version: str) -> bytes:
     # advertise on Bonjour + sniff LAN peers without needing the kody-w/RAPP install.
     tools_src = os.path.join(os.path.dirname(os.path.abspath(src)), "tools")
 
-    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+    with _EggCollector() as z:
         # Identity (always at the root of the egg, so inspectors see it
         # without having to walk a tree)
         if rappid:
@@ -427,7 +507,7 @@ def pack_organism(home: str, src: str, kernel_version: str) -> bytes:
         }
         z.writestr("manifest.json", json.dumps(manifest, indent=2))
 
-    return buf.getvalue()
+    return _finalize_egg(z, "organism")
 
 
 _LAN_QUICKSTART_SCRIPT = """#!/usr/bin/env bash
@@ -597,7 +677,7 @@ def pack_rapplication(src: str, rapp_id: str,
     counts = {"agent": 0, "organ": 0, "ui": 0, "data": 0, "soul": 0}
     buf = io.BytesIO()
 
-    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+    with _EggCollector() as z:
         # Identity
         identity = {
             "schema": "rapp/1",
@@ -665,7 +745,7 @@ def pack_rapplication(src: str, rapp_id: str,
         }
         z.writestr("manifest.json", json.dumps(manifest, indent=2))
 
-    return buf.getvalue()
+    return _finalize_egg(z, "rapplication")
 
 
 def unpack_rapplication(blob: bytes, src: str,
@@ -705,10 +785,10 @@ def unpack_rapplication(blob: bytes, src: str,
         except Exception as e:
             raise ValueError(f"egg has no readable manifest.json: {e}")
 
-        if manifest.get("schema") != SCHEMA_RAPP:
+        if manifest.get("schema") != EGG_SCHEMA or manifest.get("variant") != "rapplication":
             raise ValueError(
-                f"unsupported schema {manifest.get('schema')!r} "
-                f"(expected {SCHEMA_RAPP}). Use unpack_organism for organism eggs."
+                f"not a rapp/1-egg rapplication (schema={manifest.get('schema')!r}, "
+                f"variant={manifest.get('variant')!r}). Use unpack_organism for organism eggs."
             )
 
         rapp_id = manifest.get("rapp_id") or "unknown_rapp"
@@ -814,9 +894,7 @@ def unpack_organism(blob: bytes, home: str, src: str,
             raise ValueError(f"egg has no readable manifest.json: {e}")
 
         schema = manifest.get("schema", "")
-        if schema != SCHEMA:
-            # We don't crash on an older schema — Phase 2 (rappzoo) will
-            # add explicit upgraders. For now, refuse with a clear error.
+        if schema != EGG_SCHEMA or manifest.get("variant") != "organism":
             raise ValueError(
                 f"unsupported egg schema {schema!r} (expected {SCHEMA}). "
                 f"Use a newer brainstem to hatch this egg, or open it in rappzoo."
@@ -933,11 +1011,11 @@ def _cmd_hatch(args):
     # Schema dispatch — organism eggs and rapplication eggs use different
     # unpackers. Read the manifest and route accordingly.
     manifest = inspect_egg(blob)
-    schema = manifest.get("schema", "")
-    if schema == SCHEMA_RAPP:
+    variant = manifest.get("variant") or ("rapplication" if manifest.get("schema")==SCHEMA_RAPP else "organism")
+    if variant == "rapplication":
         result = unpack_rapplication(blob, args.src,
                                      overwrite_state=getattr(args, 'overwrite_state', False))
-    elif schema == SCHEMA:
+    elif variant == "organism":
         result = unpack_organism(blob, args.home, args.src,
                                  overwrite_rappid=not args.preserve_rappid)
     else:
