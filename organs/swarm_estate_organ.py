@@ -2,8 +2,7 @@
 swarm_estate_organ.py — kernel-side endpoints for rappid + lineage + verification.
 
 The Swarm Estate Protocol (Constitution Article XXXVI) is implemented in
-Wildhaven's private vault and described in `pages/vault/Architecture/`.
-This organ is the kernel-side runtime that exposes the protocol's
+a private vault. This organ is the kernel-side runtime that exposes the protocol's
 verification primitives at HTTP endpoints. Any operator running a brainstem
 gets these endpoints for free; they're transport-only — no Foundation IP
 exposed, just verification of public records.

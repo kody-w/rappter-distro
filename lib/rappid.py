@@ -69,7 +69,7 @@ KNOWN_KINDS = {
     "prototype",       # the species root (RAPP itself)
     "kernel-variant",  # a forked code variant of RAPP
     "organism",        # an AI organism (Wildhaven AI Homes, customer entities)
-    "twin",            # a sub-entity of an organism (Molly, personal twins)
+    "twin",            # a sub-entity of an organism (the CEO twin, personal twins)
     "swarm",           # a group of agents in training
     "rapplication",    # a graduated swarm, certified
     "agent",           # a single capability
