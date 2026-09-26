@@ -1,5 +1,9 @@
 # rappter-distro
 
+<!-- rapp1:network-header:start -->
+[![RAPP/1](https://kody-w.github.io/rapp-hive-public/portfolio/badges/rappter-distro.svg)](https://github.com/kody-w/rapp-hive-public/blob/main/portfolio/repos/rappter-distro.md) · **New to RAPP?** [Start here: get your Brainstem →](https://github.com/kody-w/rapp-installer#start-here)
+<!-- rapp1:network-header:end -->
+
 > The **Rappter distro** — organism layer on top of the RAPP grail kernel.
 
 > **Why hatch the distro?** The kernel already runs agents. The distro lets agents *have an identity, find each other, and persist their lineage* — twins, neighborhoods, bonds, eggs, the rich UI. Useful when one brainstem isn't enough and your organism needs to live among others. If you just want to run agents locally, the bare kernel is plenty.
